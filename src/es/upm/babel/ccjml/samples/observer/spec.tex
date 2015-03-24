@@ -1,0 +1,63 @@
+\begin{ctadsol}
+
+\label{especificacion-inicial}
+\nombrectad{Event Manager}
+
+\operaciones
+\operacion{Fire\_Event}{Event\_Type[i]}
+\operacion{Subscribe}{Process\_Type[i] \por Event\_Type[i]}
+\operacion{Unsubscribe}{Process\_Type[i] \por Event\_Type[i]}
+\operacion{Listen}{Process\_Type[i] \por Event\_Type[i]}
+
+\semdom
+\estado{Event Manager =  \\
+    \hspace*{5.5em} (suscribers : Event\_Type \rightarrow Set of Process\_Type \por\\
+    \hspace*{5.5em} unlistenedEvents : Event\_Type \rightarrow Set of Process\_Type)\\}
+\tipo{
+    Process\_Type = 0..N\_PROCESSES-1\\
+    Event\_Type = 0..N\_EVENTS-1}
+
+\invariante{\forall ue \in dom(self.unlistenedEvents) \st\ \\
+            \hspace*{8.5em} self.unlistenedEvents(ue) \subseteq self.suscribers(ue)}
+
+\inicial{self}{\forall ue \in Event\_Type 
+         \st\ self.unlistenedEvents(ue) = \land self.suscribers(ue) = \emptyset}
+
+\pre{\true}
+\cpre{\true}
+\nomop{Fire\_Event(eid)}
+\post{self\sal.unlistenedEvents(eid) = self\ent.subscribed(eid) \land\\
+  \hspace*{5em}\forall e \in EID\st\ (self\sal.subscribed(e) = self\ent.subscribed(e) \land\\
+  \hspace*{10.7em}(e \neq eid \Rightarrow 
+                                  self\sal.unlistenedEvents(e) = self\ent.unlistenedEvents(e)))
+}
+
+\pre{ \true }
+\nomop{Subscribe(pid,eid)}
+\post{ self\sal.subscribed(eid) = self\ent.subscribed(eid) \cup \{pid\} \land \\
+  \hspace*{5em}\forall e \in EID\st\ (self.unlistenedEvents(e) = 
+                                        self\ent.unlistenedEvents(e) \land \\
+  \hspace*{10.7em}(e \neq eid \Rightarrow self\sal.subscribed(e) = self\ent.subscribed(e)))
+}
+
+\pre{ pid \in  self.subscribed(eid)}
+\cpre{ \true}
+\nomop{Unsubscribe(pid,eid)}
+\post{ self\sal.subscribed(eid) = self\ent.subscribed(eid) \backslash \{pid\} \land \\
+  \hspace*{5em}self\sal.unlistenedEvents(eid) = 
+                             self\ent.unlistenedEvents(eid) \backslash \{pid\} \land\\
+  \hspace*{5em}\forall e \in  EID\st\ e \neq eid \Rightarrow 
+  (self.unlistenedEvents(e) = self\ent.unlistenedEvents(e) \land \\
+  \hspace*{10.7em}self\sal.subscribed(e) = self\ent.subscribed(e))
+}
+
+\pre{\true}
+\cpre{\exists e \in  EID\st\ pid \in  self.unlistenedEvents(e)}
+\nomop{Listen(pid,eid)}
+\post{ pid \in  self\ent.unlistenedEvents(eid) \land\\
+  \hspace*{5em}self\sal.unlistenedEvents(eid) = self\ent.unlistenedEvents(eid) \ {pid} \land \\ 
+  \hspace*{5em}\forall e \in  EID\st\  (self\sal.subscribed(e) = self\ent.subscribed(e) \land\\
+  \hspace*{10.7em}(e , eid \Rightarrow self.unlistenedEvents(e) = self\ent.unlistenedEvents(e)))
+}
+  
+\end{ctadsol}
