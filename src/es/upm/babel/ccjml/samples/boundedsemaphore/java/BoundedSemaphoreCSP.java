@@ -8,7 +8,6 @@ import org.jcsp.lang.ChannelInput;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.ProcessInterruptedException;
 
-import es.upm.babel.ccjml.samples.semaphore.java.Semaphore;
 import es.upm.babel.ccjml.samples.semaphore.java.pRequest;
 import es.upm.babel.ccjml.samples.semaphore.java.vRequest;
 

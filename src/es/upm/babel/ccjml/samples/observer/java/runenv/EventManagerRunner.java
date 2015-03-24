@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 import org.jcsp.lang.ProcessManager;
 
-import es.upm.babel.ccjml.samples.multibuffer.java.runenv.MultibufferRunner;
 import es.upm.babel.ccjml.samples.observer.java.EventManager;
 import es.upm.babel.ccjml.samples.observer.java.EventManagerCSP;
 import es.upm.babel.ccjml.samples.observer.java.EventManagerMonitor;
@@ -108,7 +107,7 @@ public class EventManagerRunner {
         observers[i].join();
       }
     } catch (InterruptedException ex) {
-      Logger.getLogger(MultibufferRunner.class.getName()).log(
+      Logger.getLogger(EventManagerRunner.class.getName()).log(
               Level.SEVERE, 
               ex.getMessage(),
               ex);

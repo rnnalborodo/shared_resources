@@ -4,7 +4,6 @@ import org.jcsp.lang.ProcessManager;
 import org.junit.After;
 import org.junit.Before;
 
-import es.upm.babel.ccjml.samples.multibuffer.java.MultibufferCSP;
 import es.upm.babel.ccjml.samples.semaphore.java.SemaphoreCSP;
 
 public class TestSemaphoreCSP extends TestSemaphore {

@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 import org.jcsp.lang.ProcessManager;
 
-import es.upm.babel.ccjml.samples.bufferoddeven.java.runenv.BufferOddEvenRunner;
 import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWriters;
 import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWritersCSP;
 import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWritersMonitor;
@@ -105,7 +104,7 @@ public class ReadersWritersRunner {
         readers[i].join();
       }
     } catch (InterruptedException ex) {
-      Logger.getLogger(BufferOddEvenRunner.class.getName()).log(
+      Logger.getLogger(ReadersWritersRunner.class.getName()).log(
               Level.SEVERE, 
               ex.getMessage(),
               ex);
