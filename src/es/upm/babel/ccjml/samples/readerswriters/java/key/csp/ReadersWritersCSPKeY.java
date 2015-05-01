@@ -73,11 +73,11 @@ public class ReadersWritersCSPKeY {
   //@ ensures syncCond[\result];
   //@ ensures guards[\result].size() > 0; 
   private int /*@ pure @*/ fairSelect(boolean[] syncCond, List[] guards) {
-    int selectedService = 3;
+    int selectedService = 0;
     return selectedService;
   }  
   
-  /** Auxiliary variables to express 'assume' constraints as verifiables by KeY */
+  /** Auxiliary variables to express 'assume' constraints as verifiable by KeY */
   //  explain each of the and why is that generally
   // safety
   private boolean wellFormedGuards;
@@ -105,7 +105,7 @@ public class ReadersWritersCSPKeY {
     wellFormedGuards = true;
     wellFormedSyncCond = true;
     propSafeSelection = true;
-    propEffectiveFairSelect = true;
+    // propEffectiveFairSelect = true;
     
     /** Creating Guards (eligible channels) and its correspondence in syncCond */
     List[] guards =  {
@@ -164,10 +164,10 @@ public class ReadersWritersCSPKeY {
                             syncCond.length == 4;
    
      int chosenService = fairSelect(syncCond, guards);
-     propEffectiveFairSelect &= 
-                     chosenService < guards.length && chosenService >= 0 &&
-                     guards[chosenService].size() > 0 &&
-                     syncCond[chosenService];
+     // propEffectiveFairSelect &= 
+     //                 chosenService < guards.length && chosenService >= 0 &&
+     //                 guards[chosenService].size() > 0 &&
+     //                 syncCond[chosenService];
                      
      switch(chosenService){
    

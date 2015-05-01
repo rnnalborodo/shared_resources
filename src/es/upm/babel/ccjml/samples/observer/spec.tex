@@ -4,7 +4,7 @@
 \nombrectad{Event Manager}
 
 \operaciones
-\operacion{Fire\_Event}{Event\_Type[i]}
+\operacion{FireEvent}{Event\_Type[i]}
 \operacion{Subscribe}{Process\_Type[i] \por Event\_Type[i]}
 \operacion{Unsubscribe}{Process\_Type[i] \por Event\_Type[i]}
 \operacion{Listen}{Process\_Type[i] \por Event\_Type[i]}
@@ -25,7 +25,7 @@
 
 \pre{\true}
 \cpre{\true}
-\nomop{Fire\_Event(eid)}
+\nomop{FireEvent(eid)}
 \post{self\sal.unlistenedEvents(eid) = self\ent.subscribed(eid) \land\\
   \hspace*{5em}\forall e \in EID\st\ (self\sal.subscribed(e) = self\ent.subscribed(e) \land\\
   \hspace*{10.7em}(e \neq eid \Rightarrow 

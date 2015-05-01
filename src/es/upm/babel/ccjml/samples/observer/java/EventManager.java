@@ -35,8 +35,7 @@ public interface /*@ shared_resource @*/ EventManager {
     @            ((JMLObjectSequence)unlistenedEvents.get(i)).length == N_PROCESSES);
     @*/
 
-  //@ public normal_behaviour
-  //@ requires eid < N_EVENTS;
+  //@ requires eid < N_EVENTS && eid >= 0;
   //@ cond_sync true;
   //@ assignable unlistenedEvents.get(eid);
   /*@ ensures (\forall int i; i >= 0 && i < N_PROCESSES;
@@ -45,15 +44,14 @@ public interface /*@ shared_resource @*/ EventManager {
   public void fireEvent(int eid);
 
   //@ public normal_behaviour
-  //@ requires eid < N_EVENTS && pid < N_PROCESSES;
-  //@ cond_sync true;
+  //@ requires pid >=0  && pid < N_PROCESSES;
+  //@ requires eid >= 0 && pid < N_EVENTS;
   //@ assignable ((JMLObjectSequence)unlistenedEvents.get(eid)).get(pid);
   //@ ensures ((JMLObjectSequence)unlistenedEvents.get(eid)).get(pid);
   public void subscribe(int pid, int eid);
 
-  //@ public normal_behaviour
-  //@ requires eid < N_EVENTS && pid < N_PROCESSES;
-  //@ cond_sync true;
+  //@ requires pid >=0  && pid < N_PROCESSES;
+  //@ requires eid >= 0 && pid < N_EVENTS;
   //@ assignable ((JMLObjectSequence)unlistenedEvents.get(eid)).get(pid);
   //@ ensures !unlistenedEvents.get(eid).get(pid);
   public void unsubscribe(int pid, int eid);

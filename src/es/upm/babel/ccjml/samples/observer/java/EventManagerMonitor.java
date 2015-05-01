@@ -17,8 +17,8 @@ public class EventManagerMonitor extends AEventManager {
     unlistenedEvents = new boolean [maxEvent][maxProcesses];
     
     mutex = new Monitor();
-    processWaitingForEvent = new Monitor.Cond[maxEvent];
-    for (int i = 0; i < maxEvent; i++) {
+    processWaitingForEvent = new Monitor.Cond[maxProcesses];
+    for (int i = 0; i < maxProcesses; i++) {
       processWaitingForEvent[i] = mutex.newCond();
     }
   }

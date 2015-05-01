@@ -65,8 +65,6 @@ public class ReadersWritersCSPDeferredRequestKeYOptimized {
   // SERVER SIDE CODE
   
   /** Auxiliary variables to express 'assume' constraints as verifiable by KeY */
-  //  explain each of the and why is that generally
-  // safety
   private boolean cprePreservation;
   
   /*@ requires beforeWriteRequests +
@@ -80,18 +78,18 @@ public class ReadersWritersCSPDeferredRequestKeYOptimized {
   //@ assignable cprePreservation;
   //@ assignable readers, writers;
   //@ ensures cprePreservation;
-  //prop_liveness
+  //prop_effectiveness
   /* ensures (beforeReadRequests > 0 ==> !cpreBeforeRead()) && 
     @         (beforeWriteRequests > 0 ==> !cpreBeforeWrite()) &&
     @         (afterReadRequests > 0 ==> !true) &&
-    @         (afterWriteRequests > 0 ==> !true) && 
+    @         (afterWriteRequests > 0 ==> !true)
     @         ;
     @*/
-  //prop_liveness using protocols notion
+  //prop_effectiveness using protocols notion
   /*@ ensures (beforeReadRequests > 0 ==> !cpreBeforeRead()) && 
     @         (beforeWriteRequests > 0 ==> !cpreBeforeWrite()) &&
     @         (afterReadRequests > 0 ==> !(readers > 0)) &&
-    @         (afterWriteRequests > 0 ==> !(writers > 0)) && 
+    @         (afterWriteRequests > 0 ==> !(writers > 0))
     @         ;
     @*/
   public void processRequest(){
@@ -99,69 +97,59 @@ public class ReadersWritersCSPDeferredRequestKeYOptimized {
     cprePreservation = true;
     int queueSize;
     
-     while (requestProcessed) {
-       requestProcessed = false;
-      
-       queueSize = beforeWriteRequests;
-       for(int i = 0; i < queueSize;i++) {
-         if (writers + readers == 0){
-           cprePreservation &=cpreBeforeWrite();
-           beforeWriteRequests --;
-            this.innerBeforeWrite(); 
-           requestProcessed = true; 
-         } else {
-           break;
-         }
-       }
-     
-       queueSize = beforeReadRequests;
-       for(int i = 0; i < queueSize;i++) {
-         if (writers == 0){
-           cprePreservation &= cpreBeforeRead();
-           beforeReadRequests --;
-           this.innerBeforeRead(); 
-           requestProcessed = true; 
-         }  else {
-           break;
-         }
-       }
-     
-       queueSize = afterWriteRequests;
-       for(int i = 0; i < queueSize;i++) {
-         if (writers > 0){
-           cprePreservation &= true;
-           afterWriteRequests --;
-           this.innerAfterWrite(); 
-           requestProcessed = true; 
-         } else {
-           break;
-         }
-       }
-     
-       queueSize = afterReadRequests;
-       for(int i = 0; i < queueSize;i++) {
-         if (readers > 0){
-           cprePreservation &= true;
-           afterReadRequests --;
-           this.innerAfterRead(); 
-           requestProcessed = true; 
-         } else {
-           break;
-         }
-       }
-      // System.out.println(requestProcessed + "--- " + toString());  
-      // System.out.println("cprePreservation =" +cprePreservation);
-     } // end while
-
-    // System.out.println("liveness =" +liveness);
-    // System.out.println("cprePreservation =" +cprePreservation);
+    while (requestProcessed) {
+      requestProcessed = false;
+    
+      queueSize = beforeWriteRequests;
+      for(int i = 0; i < queueSize;i++) {
+        if (writers + readers == 0){
+          cprePreservation &=cpreBeforeWrite();
+          beforeWriteRequests --;
+          this.innerBeforeWrite(); 
+          requestProcessed = true;  
+        } else { 
+          break;
+        }
+      }
+    
+      queueSize = beforeReadRequests;
+      for(int i = 0; i < queueSize;i++) {
+        if (writers == 0){
+          cprePreservation &= cpreBeforeRead();
+          beforeReadRequests --;
+          this.innerBeforeRead(); 
+          requestProcessed = true; 
+        }  else {
+          break;
+        }
+      }
+    
+      queueSize = afterWriteRequests;
+      for(int i = 0; i < queueSize;i++) {
+        if (writers > 0){
+          cprePreservation &= true;
+          afterWriteRequests --;
+          this.innerAfterWrite(); 
+          requestProcessed = true; 
+        } else {
+          break;
+        }
+      }
+    
+      queueSize = afterReadRequests;
+      for(int i = 0; i < queueSize;i++) {
+        if (readers > 0){
+          cprePreservation &= true;
+          afterReadRequests --;
+          this.innerAfterRead(); 
+          requestProcessed = true; 
+        } else {
+          break;
+        }
+      }
+    } // end while
   } // end run
     
-
-  // public static void main(String[] args)   {
-  //   new ReadersWritersCSPDeferredRequestKeYOptimized().processRequest();
-  // }
-  
   //@ requires true && cpreBeforeRead();
   //@ assignable readers ;
   //@ ensures readers == \old(readers) + 1;

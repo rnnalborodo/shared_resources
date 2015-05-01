@@ -5,11 +5,10 @@ public interface /* shared_resource @*/ ReadersWriters {
   //@ public model instance int writers;
   
   /*@ public instance invariant 
-    @      (readers >= 0 && writers >= 0) &&
-    @      (readers > 0 ==> writers == 0) &&
-    @      (writers > 0 ==> readers == 0) &&
-    @      (writers == 0 || writers == 1)     
-    @ ;
+    @    readers >= 0 &&
+    @    (readers > 0 ==> writers == 0) &&
+    @    (writers > 0 ==> readers == 0) &&
+    @    (writers == 0 || writers == 1);
     @*/
   
   //@ public initially readers == 0 && writers == 0;
@@ -42,5 +41,3 @@ public interface /* shared_resource @*/ ReadersWriters {
     @*/
   public void afterRead();
 }
-
-

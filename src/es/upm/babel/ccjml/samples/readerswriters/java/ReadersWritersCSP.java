@@ -98,9 +98,7 @@ public class ReadersWritersCSP extends AReadersWriters implements CSProcess {
       refreshSyncConditions(syncCond);
       //@ assert syncCond is consistent,i.e, all refreshments are done properly
       
-      try {
-        chosenService = services.fairSelect(syncCond);
-      } catch (ProcessInterruptedException e){}
+      chosenService = services.fairSelect(syncCond);
 
       //@ assume chosenService < guards.length && chosenService >= 0;
       //@ assume guards[chosenService].pending() > 0;

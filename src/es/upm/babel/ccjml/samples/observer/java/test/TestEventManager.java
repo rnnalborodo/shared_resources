@@ -222,4 +222,37 @@ public abstract class TestEventManager {
     assertTrue(trace + "-> " + listen.call() + " should have blocked",
         listen.isBlocked());
   }
+  
+  @Test public void severalProcessOnSameEvent () {
+    int eid = randomGenerator.nextInt(N_EVENTS);
+    
+    for (int i = 0; i < this.N_PROCESSES; i++) {
+      Subscribe subscription = new Subscribe(i, eid);
+      subscription.start();
+      subscription.gimmeTime(DELAY_MIN_MS);
+      assertTrue(trace + "-> " + subscription.call() + " shouldn't have blocked",
+         !subscription.isBlocked());      
+    }
+    Listen[] listeners = new Listen[N_PROCESSES];
+    
+    for (int i = 0; i < this.N_PROCESSES; i++) {
+      listeners[i] = new Listen(i);
+      listeners[i].start();
+      listeners[i].gimmeTime(DELAY_MIN_MS);
+      assertTrue(trace + "-> " + listeners[i].call() + " should have blocked",
+          listeners[i].isBlocked());
+    }
+    
+    FireEvent fe = new FireEvent(eid);
+    fe.start();
+    fe.gimmeTime(DELAY_MIN_MS);
+    
+    assertTrue(trace + "-> " + fe.call() + " shouldn't have blocked",
+        !fe.isBlocked());
+
+    for (int i = 0; i < this.N_PROCESSES; i++) {
+      assertTrue(trace + "-> " + listeners[i].call() + " should have unblocked",
+          !listeners[i].isBlocked());
+    }
+  }
 }

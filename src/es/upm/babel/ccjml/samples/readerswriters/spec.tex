@@ -1,5 +1,5 @@
 \begin{ctadsol}
-  \nombrectad{readersriters}
+  \nombrectad{ReadersWriters}
 %
   \operaciones
   \operacion{BeforeRead}{\void}
@@ -7,18 +7,18 @@
   \operacion{BeforeWrite}{\void}
   \operacion{AfterWrite}{\void}
 %
-  \protoconc
-  {
-    Read: BeforeRead; AfterRead \\
-    Write: BeforeWrite; AfterWrite
-    }
-  {Read*}
+  % \protoconc
+  % {
+  %   Read: BeforeRead; AfterRead \\
+  %   Write: BeforeWrite; AfterWrite
+  %   }
+  % {Read*}
 %
   \semdom
   \estado{RW = (readers \nat \por writers: \nat)}
   \invariante{(readers > 0 \rightarrow writers = 0) \land \\
               (writers = 1 \rightarrow readers = 0) \land \\
-              (writers = 0 \lor writers = 1) \land readers >= 0}
+              (writers = 0 \lor writers = 1)}
   \inicial{\self}{writers = 0 \land readers = 0}
 
   \cpre{writers = 0}
@@ -34,7 +34,7 @@
   \nomop{BeforeWrite}
   \post{writers\sal = 1}
 
-  \pre{writers = 1 }
+  \pre{writers = 1}
   \cpre{true}
   \nomop{AfterWrite}
   \post{writers\sal = 0}
