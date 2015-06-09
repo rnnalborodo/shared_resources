@@ -9,8 +9,12 @@ import es.upm.babel.ccjml.samples.utils.Tuple;
 import es.upm.babel.cclib.Monitor;
 import es.upm.babel.cclib.Monitor.Cond;
 
-/** Multibuffer implementation using locks and conditions. */
-public class MultibufferMonitorWithPriority implements Multibuffer {
+/** 
+ * Multibuffer implementation using locks and conditions. 
+ *
+ * @author BABEL Group
+ */
+public class MultibufferMonitorWithPriority extends AMultibuffer {
   
   private final Logger log = Logger.getLogger(MultibufferMonitorWithPriority.class.getName());
   
@@ -21,46 +25,7 @@ public class MultibufferMonitorWithPriority implements Multibuffer {
   private static final int PUT = 1;
   private static final int GET = 0;
   
-  // Class members
-  /*@ public invariant
-    @   MAX == 4;
-    @*/
-  private final int MAX;/*@ in maxData; @*/
-  /*@ private represents maxData <- MAX; @*/
 
-  // Instance members: shared resource internal state
-  /*@ public invariant 0 <= first && first < MAX; @*/
-  private /*@ spec_public @*/ int first; /*@ in data; @*/
-  
-  /*@ public invariant 0 <= nData && nData <= MAX; @*/
-  private /*@ spec_public @*/ int nData; /*@ in data; @*/
-  
-  private final /*@spec_public@*/ Object[] buffer;/*@ in data; @*/
-  /*@ private represents
-    @   data <- nData == 0
-    @     ? JMLObjectSequence.EMPTY 
-    @     : first + nData <= max   
-    @     ? JMLObjectSequence.convertFrom(buffer).subsequence(first, first + nData - 1)
-    @     : JMLObjectSequence.convertFrom(buffer).subsequence(first, maxData - 1).
-    @     concat(JMLObjectSequence.convertFrom(buffer,(first + nData) % max - 1)); 
-    @*/
-  
-  @Override
-  public int maxData() {
-    return MAX;
-  }
-  
-  //@ requires n > 0;
-  //@ ensures \result == n > MAX - nData
-  private boolean cprePut(int n){
-    return MAX - nData >= n;
-  }
-
-  //@ requires n > 0;
-  //@ ensures \result == n <= nData
-  private boolean cpreGet(int n) {
-    return n <= nData;
-  }
   
   //@ public normal_behaviour
   //@ ensures \result == maxData > 0 && data.length() <= maxData;
@@ -80,8 +45,6 @@ public class MultibufferMonitorWithPriority implements Multibuffer {
   public void put(Object[] els) {
     //@assume els.length <= maxData / 2 && invariant();
     mutex.enter();
-
-    System.out.println(Thread.currentThread().getId() +")  Put(" +Arrays.toString(els)+")");
     
     if (!cprePut(els.length)) {
       Cond cond = mutex.newCond();
@@ -97,15 +60,12 @@ public class MultibufferMonitorWithPriority implements Multibuffer {
     //@ assert data == \old(data).concat(JMLObjectSequence.convertFrom(els)) && invariant();
     unblobckingCode();
     
-    System.out.println(Thread.currentThread().getId() +")  Put(" +Arrays.toString(els)+") +++++++++++");
-    
     mutex.leave();
   }
 
   @Override
   public Object[] get(int n) {
     mutex.enter();
-    System.out.println(Thread.currentThread().getId() +")  GET(" +n+")");
     //@ assume (n <= maxData / 2) && invariant();
     if (!cpreGet(n)){
       Cond cond = mutex.newCond();
@@ -124,8 +84,6 @@ public class MultibufferMonitorWithPriority implements Multibuffer {
     nData-= n;
     //@ assert \result.length == n && JMLObjectSequence.convertFrom(\result).concat(data) == \old(data) && invariant();
     unblobckingCode();
-    
-    System.out.println(Thread.currentThread().getId() +")  GET(" +n+") +++++++++++ ");
     
     mutex.leave();
     return gotData;

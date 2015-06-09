@@ -5,8 +5,12 @@ import java.util.List;
 
 import es.upm.babel.cclib.Monitor;
 
-/** Multibuffer implementation using locks and conditions. */
-public class MultibufferMonitorPriorityBuggyDeadlock implements Multibuffer {
+/**
+ * Multibuffer implementation using locks and conditions. 
+ *
+ * @author BABEL Group
+ */
+public class MultibufferMonitorPriorityBuggyDeadlock extends AMultibuffer {
   
   /** Guarantee mutual exclusion in critic sections */
   private final Monitor mutex;
@@ -15,47 +19,6 @@ public class MultibufferMonitorPriorityBuggyDeadlock implements Multibuffer {
   
   private final Monitor.Cond awaitingGet;
   private final List<Integer> awaitingParametersGet;
-  
-  // Class members
-  /*@ public invariant
-    @   MAX == 4;
-    @*/
-  private static int MAX;/*@ in maxData; @*/
-  /*@ private represents maxData <- MAX; @*/
-
-  // Instance members: shared resource internal state
-  /*@ public invariant 0 <= first && first < MAX; @*/
-  private /*@ spec_public @*/ int first; /*@ in data; @*/
-  
-  /*@ public invariant 0 <= nData && nData <= MAX; @*/
-  private /*@ spec_public @*/ int nData; /*@ in data; @*/
-  
-  private final /*@spec_public@*/ Object[] buffer;/*@ in data; @*/
-  /*@ private represents
-    @   data <- nData == 0
-    @     ? JMLObjectSequence.EMPTY 
-    @     : first + nData <= max   
-    @     ? JMLObjectSequence.convertFrom(buffer).subsequence(first, first + nData - 1)
-    @     : JMLObjectSequence.convertFrom(buffer).subsequence(first, maxData - 1).
-    @     concat(JMLObjectSequence.convertFrom(buffer,(first + nData) % max - 1)); 
-    @*/
-  
-  @Override
-  public int maxData() {
-    return MAX;
-  }
-  
-  //@ requires n > 0;
-  //@ ensures \result == n > MAX - nData
-  private boolean cprePut(int n){
-    return n > MAX - nData;
-  }
-
-  //@ requires n > 0;
-  //@ ensures \result == n <= nData
-  private boolean cpreGet(int n) {
-    return n <= nData;
-  }
   
   //@ public normal_behaviour
   //@ ensures \result == maxData > 0 && data.length() <= maxData;

@@ -2,8 +2,10 @@ package es.upm.babel.ccjml.samples.multibuffer.java;
 
 //@ model import org.jmlspecs.models.JMLObjectSequence;
 
-/*
+/**
  * Multibuffer implementation with synchronized methods.
+ *
+ * @author BABEL Group
  */
 public class MultibufferSync implements Multibuffer {
   private Object[] buffer; /*@ in data; @*/

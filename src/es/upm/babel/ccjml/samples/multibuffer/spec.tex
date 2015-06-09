@@ -5,11 +5,12 @@
 %
 \operaciones
 \operacion{Put}{Sequence(ANY)[i]}
-\operacion{Get}{$\mathbb{N}$[i] $\times$ Sequence(ANY)[o]}
+\operacion{Get}{\mathbb{N}[i] \times Sequence(ANY)[o]}
 %
 \semdom
-\tipo{Multibuffer =  Sequence(ANY) }
-\invariante{\forall mb \in Multibuffer \st\ \lng{mb} \leq MAX}
+\estado{Multibuffer =  Sequence(ANY)}
+%\invariante{\forall mb \in Multibuffer \st\ \lng{mb} \leq MAX}
+\invariante{\lng{self} \leq MAX}
 \inicial{self}{\lng{self} = 0}
 
 \pre{\lng{r} \leq \floor{MAX/2}}

@@ -4,7 +4,9 @@ package es.upm.babel.ccjml.samples.multibuffer.java.key;
  * @author rnnalborodo
  */
 public class MultibufferMonitorKeY{
-// Class members
+  //@ int ghost awakenThread;
+  
+  // Class members
   /*@ public invariant
     @  MAX == 1;
     */
@@ -20,7 +22,6 @@ public class MultibufferMonitorKeY{
   
   /*@ public invariant buffer.length == MAX; @*/
   private /*@spec_public@*/ int[] buffer;
-  // ------------------------ concurrency instrumentation ------------------------
 
   /*@ public invariant
     @         emptiness.length == MAX+1 && 
@@ -55,55 +56,56 @@ public class MultibufferMonitorKeY{
   }
 
   //@ assignable signaled, fullness[*], emptiness[*];
-  //@ assignable first, buffer, nData;
   //prop_safe_signal
-  /* ensures
-     @  (\forall int i; i>=1 && i < MAX + 1; 
-     @        (emptiness[i] + 1 == \old(emptiness)[i] ==> cprePut(i)) &&
-     @        (fullness[i] + 1 == \old(fullness)[i] ==> cpreGet(i))
-     @  );
-     @*/
+  /*@ ensures
+    @  (\forall int i; i>=1 && i < MAX + 1; 
+    @        (emptiness[i] + 1 == \old(emptiness)[i] ==> cprePut(i)) &&
+    @        (fullness[i] + 1 == \old(fullness)[i] ==> cpreGet(i))
+    @  );
+    @*/
   // prop_signal_0_1
   /*@ ensures 
-     @  (\forall int i; i>=1 && i < MAX + 1; 
-     @    emptiness[i] == \old(emptiness[i]) && fullness[i] == \old(fullness[i]) )
-     @  ||
-     @  (\exists int i; i>=1 && i < MAX + 1;
-     @          emptiness[i] + 1== \old(emptiness[i]) && fullness[i]==\old(fullness[i]) )
-     @  ||
-     @  (\exists int i; i>=1 && i < MAX + 1;
-     @          fullness[i] + 1== \old(fullness[i]) && emptiness[i]==\old(emptiness[i])
-     @  );
-     @*/
+    @  ( awakenThread == -1 &&
+    @    \forall int i; i>=1 && i < MAX + 1; 
+    @                   emptiness[i] == \old(emptiness[i]) && 
+    @                   fullness[i] == \old(fullness[i]) )
+    @  ||
+    @  (emptiness[awakenThread] + 1== \old(emptiness[awakenThread]) && fullness[i]==\old(fullness[i]) )
+    @  ||
+    @  (fullness[awakenThread] + 1== \old(fullness[awakenThread]) && emptiness[i]==\old(emptiness[i])
+    @  );
+    @*/
   // prop_signal_effective
-  /* ensures
-     @  signaled == 1
-     @  ==>
-     @  (\exists int i; i>=1 && i < MAX + 1;
-     @        emptiness[i] + 1 == \old(emptiness[i]) ||
-     @        fullness[i] + 1 == \old(fullness[i])
-     @  );
-     @*/
+  /*@ ensures
+    @  signaled == 1
+    @  ==>
+    @  (
+    @        emptiness[awakenThread] + 1 == \old(emptiness[awakenThread]) ||
+    @        fullness[awakenThread] + 1 == \old(fullness[awakenThread])
+    @  );
+    @*/
   // prop_liveness
-  /* ensures
-     @  (\exists int i; i >= 1 && i < MAX + 1;
-     @       \old(emptiness[i])> 0 && cprePut(i) ||
-     @       \old(fullness[i])> 0 && cpreGet(i))
-     @  ==>
-     @    signaled == 1;
-     @*/
-  // prop_signal_and_return
-  /* ensures 
-     @  first == \old(first) && nData == \old(nData) &&
-     @  buffer == \old(buffer) ;
-     @*/
+  /*@ ensures
+    @  awakenThread == -1 || 
+    @  (
+    @    (
+    @      (awakenThread < emptyness.length && \old(emptiness[awakenThread])> 0 && cprePut(awakenThread)) ||
+    @      (\old(fullness[awakenThread])> 0 && cpreGet(awakenThread))
+    @    )
+    @  ) ==>
+    @    signaled == 1
+    @  );
+    @*/
+// prop_signal_and_return - nothing to do here !
   private void unblobckingCode(){
     // Second step using Model Search as Aritmetic Treatment
+    //@ set awakenThread = -1; 
     signaled = 0;
     // @ loop_invariant 0 < i && i <= MAX-nData; 
     for (int i = MAX-nData; i > 0 && signaled == 0; i--) {
       if (emptiness[i] > 0) {
         emptiness[i]--;
+        //@ set awakenThread = i;
         //@ assert cprePut(i);
         signaled ++;
       }
@@ -112,6 +114,7 @@ public class MultibufferMonitorKeY{
     for (int j = nData; j > 0 && signaled == 0 ; j--) {
       if (fullness[j] > 0) {
         fullness[j]--;
+        //@ set awakenThread = j + emptyness.length;
         //@ assert cpreGet(i);
         signaled++;
       } 

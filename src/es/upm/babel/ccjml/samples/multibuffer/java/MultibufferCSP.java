@@ -1,159 +1,143 @@
 package es.upm.babel.ccjml.samples.multibuffer.java;
 
-// importamos la librería JCSP
-
 import org.jcsp.lang.Alternative;
-import org.jcsp.lang.AltingChannelInput;
 import org.jcsp.lang.Any2OneChannel;
 import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.ChannelOutput;
+import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
-import org.jcsp.lang.ProcessInterruptedException;
 
-public class MultibufferCSP implements Multibuffer, CSProcess {
+/** 
+ * Multibuffer implementation using JCSP Library with channel expansion. 
+ *
+ * @author BABEL Group
+ */
+public class MultibufferCSP extends AMultibuffer implements CSProcess {
+    
+  /** WRAPPER IMPLEMENTATION */
+  private final Any2OneChannel[] putChannel;
+  private final Any2OneChannel[] getChannel;
 
-  private final Any2OneChannel[] chPut;
-  private final Any2OneChannel[] chGet;
-
-  private int MAX_DATA;
-  /* @ private represents maxData <- MAX_DATA; @ */
-  
-  private final Any2OneChannel chData[];
-
-  private Object buffer[]; /* @ in data; @ */
-  /*@ private represents
-  @   data <- nData == 0
-  @     ? JMLObjectSequence.EMPTY 
-  @     : first + nData <= max   
-  @     ? JMLObjectSequence.convertFrom(buffer).subsequence(first, first + nData - 1)
-  @     : JMLObjectSequence.convertFrom(buffer).subsequence(first, maxData - 1).
-  @     concat(JMLObjectSequence.convertFrom(buffer,(first + nData) % max - 1)); 
-  @*/
-  
-  private int first;/* @ in data; @ */
-  private int nData;/* @ in data; @ */
-
-  // Para evitar la construcción de almacenes sin inicializar la
-  // capacidad
   public MultibufferCSP() {
     this(10);
   }
 
   public MultibufferCSP(int l) {
-    this.MAX_DATA = l;
-    chPut = new Any2OneChannel[MAX_DATA];
-    chGet = new Any2OneChannel[MAX_DATA];
+    this.MAX = l;
+    putChannel = new Any2OneChannel[MAX];
+    getChannel = new Any2OneChannel[MAX];
 
-    for (int n = 0; n < MAX_DATA; n++) {
-      chPut[n] = Channel.any2one();
-      chGet[n] = Channel.any2one();
+    for (int n = 0; n < MAX; n++) {
+      putChannel[n] = Channel.any2one();
+      getChannel[n] = Channel.any2one();
     }
 
-    chData = new Any2OneChannel[MAX_DATA];
-    buffer = new Object[MAX_DATA];
+    buffer = new Object[MAX];
 
     first = 0;
     nData = 0;
-
   }
 
   @Override
   public void put(Object[] objs) {
-//    System.out.println(Thread.currentThread().getId() + ") ++ PUT --> " + objs.length );
-    chPut[objs.length - 1].out().write(objs);
-//    System.out.println(Thread.currentThread().getId() + ") -- PUT --> " + objs.length );
-  }
-
-  @Override
-  public int maxData() {
-    return MAX_DATA;
+    putChannel[objs.length - 1].out().write(objs);
   }
 
   @Override
   public Object[] get(int n) {
     Object[] result;
     One2OneChannel chResp = Channel.one2one();
-
-    System.out.println(Thread.currentThread().getId() + ") ++ GET --> " + n );
-    
-    chGet[n - 1].out().write(chResp.out());
+    getChannel[n - 1].out().write(chResp.out());
     result = (Object[]) chResp.in().read();
-
-    System.out.println(Thread.currentThread().getId() + ") -- GET --> "+ result.length );
     return result;
   }
 
   public boolean cprePut(int n) {
-    return (MAX_DATA - nData) >= n;
+    return (MAX - nData) >= n;
   }
 
   public boolean cpreGet(int n) {
     return nData >= n;
   }
 
-  // código del servidor
+  /** SERVER IMPLEMENTATION */
   @Override
   public void run() {
-    // DISPOSICIÓN DE LAS ENTRADAS PARA RECEPCIÓN ALTERNATIVA
-    // tendremos un vector de entradas de tamaño (TAM/2 + 1) * 2
-    // Las primeras TAM/2+1 entradas serán para las peticiones de
-    // almacenar y las siguientes para las de extraer:
-    // AltingChannelInput[] inputs = new AltingChannelInput[(TAM / 2 + 1) * 2];
-    AltingChannelInput[] inputs = new AltingChannelInput[MAX_DATA * 2];
-
-    Any2OneChannel uselessChannel = Channel.any2one();
-
-    for (int n = 0; n < MAX_DATA; n++) {
-      inputs[n] = chPut[n].in();
-      inputs[n + MAX_DATA] = chGet[n].in();
+    /* 
+     * One entry for each associated predicated. 
+     * Union of all channel lists.
+     *
+     * Channel splitting positions
+     * inputs has (TAM/2 + 1) * 2 length.
+     * inputs[i] are from put iff i belongs to {0..MAX/2}
+     * inputs[i] are from put iff i belongs to {MAX/2 + 1..MAX}
+     */
+    Guard[] inputs = new Guard[MAX * 2];
+    for (int n = 0; n < MAX; n++) {
+      inputs[n] = putChannel[n].in();
+      inputs[n + MAX] = getChannel[n].in();
     }
 
-    Alternative servicios = new Alternative(inputs);
-    int choice = 0, cuanto;
+    final Alternative services = new Alternative(inputs);
+    int chosenService = 0;
     ChannelOutput cresp;
     Object[] items;
 
-    // RECEPCION CONDICIONAL
-    boolean[] sincCond = new boolean[MAX_DATA * 2];
+    /**
+     *  Conditional reception for fairSelect().
+     *  Should be refreshed every iteration.
+     */
+    boolean[] syncCond = new boolean[MAX * 2];
     while (true) {
 
-      // refrescamos las condiciones (sin optimizar)
-      for (int n = 0; n < MAX_DATA; n++) {
-        // CPREs de almacenar
-        sincCond[n] = cprePut(n+1);
-        // CPREs de extraer
-        sincCond[n + MAX_DATA] = cpreGet(n+1);
+      // synchronization conditions updated
+      for (int n = 0; n < MAX; n++) {
+        syncCond[n] = cprePut(n+1);
+        syncCond[n + MAX] = cpreGet(n+1);
       }  
+      /*@ assume (\forall int i; i > = 0 i < syncCond.length; 
+        @           ( i < MAX_DATA && syncCond[i] ==> cprePut(i+1))
+        @         ||
+        @           ( i >= MAX_DATA && syncCond[i] ==> cpreGet(i+1))
+        @        )
+        @*/
       
-      // LA SELECT
-      try {
-        choice = servicios.fairSelect();
-      } catch (ProcessInterruptedException e) {
-      }
+      chosenService = services.fairSelect(syncCond);
+      //@ assume chosenService < guards.length && chosenService >= 0;
+      //@ assume guards[chosenService].pending() > 0;
+      //@ assume syncCond[chosenService];
 
-      if (sincCond[choice]) {
-        System.out.println(choice);
-        if (choice < MAX_DATA) {// put
-          items = (Object[]) inputs[choice].read();
-          for (Object item : items) {
-            buffer[(first + nData) % MAX_DATA] = item;
-            nData++;
-          }
-        } else {// get
-          cresp = (ChannelOutput) inputs[choice].read();
-          int lastItem = choice - MAX_DATA + 1;
-          items = new Object[lastItem];
-          for (int k = 0; k < lastItem; k++) {
-            items[k] = buffer[first];
-            buffer[first] = null;
-            first++;
-            first %= MAX_DATA;
-          }
-          nData-= lastItem ;
-          cresp.write(items);
-        }
+      if (chosenService < MAX) {// put
+        //@ assume cprePut(choice +1);
+        items = (Object[]) putChannel[chosenService].in().read();
+        this.innerPut(items);
+      } else {// get
+        //@ assume cprePut(choice - MAX_DATA + 1);
+        cresp = (ChannelOutput) getChannel[chosenService].in().read();
+        int lastItem = chosenService - MAX + 1;
+        cresp.write(this.innerGet(lastItem));
       }
-    }// FIN BUCLE SERVICIO
-  }// FIN SERVIDOR
+    }
+  }
+  
+  private void innerPut(Object[] items){
+    for (Object item : items) {
+      buffer[(first + nData) % MAX] = item;
+      nData++;
+    }
+  }
+  
+  private Object[] innerGet(int n){
+    Object[] items = new Object[n];
+    for (int k = 0; k < n; k++) {
+      items[k] = buffer[first];
+      buffer[first] = null;
+      first++;
+      first %= MAX;
+    }
+    nData-= n ;
+    return items;
+  }
+
 }

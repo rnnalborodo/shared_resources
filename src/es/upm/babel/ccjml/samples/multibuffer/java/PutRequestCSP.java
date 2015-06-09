@@ -5,7 +5,7 @@ import org.jcsp.lang.One2OneChannel;
 import es.upm.babel.ccjml.samples.utils.Tuple;
 
 /**
- * @author rnnalborodo
+ * @author BABEL Group
  */
 public class PutRequestCSP extends Tuple<Integer, One2OneChannel>{
 

@@ -14,12 +14,13 @@ import org.jcsp.lang.One2OneChannel;
 import es.upm.babel.ccjml.samples.readerswriters.java.Request;
 
 /** 
- * Observer implementation using message passing. 
+ * Observer implementation CSP with deferred request processing. 
  * 
  * @author Babel Group
  */ 
 public class EventManagerCSPDeferredRequest extends AEventManager implements CSProcess {
 
+  /** WRAPPER IMPLEMENTATION */ 
   /**
    *  Channel for receiving external request for each method
    */
@@ -42,7 +43,6 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
  
   }
   
-  // API for this resource
   @Override
   public void fireEvent(int eid) {
     //@ assume preFireEvent(eid) && repOk();
@@ -80,8 +80,8 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
     return (Integer)innerChannel.in().read();
   }
 
-  // CSP Server Code
-  // Constants representing the method presented in the API
+  /* SERVER IMPLEMENTATION */
+  /** Constants representing API method's */
   final int FIRE_EVENT  = 0;
   final int SUBSCRIBE   = 1;
   final int UNSUBSCRIBE = 2;
@@ -89,9 +89,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
   
   @SuppressWarnings("unchecked")
   public void run() {
-    /**
-     *  One entry for each method
-     */
+    /* One entry for each method. */
     final Guard[] guards = new AltingChannelInput[4];
     guards[FIRE_EVENT]  = fireEventChannel.in();
     guards[SUBSCRIBE]   = subscribeChannel.in();
@@ -100,38 +98,31 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
 
     final Alternative services = new Alternative(guards);
     int chosenService;
-    /**
-     *  Server loop
-     */
+
     while (true) {
       
       chosenService = services.fairSelect();
       
       switch (chosenService) {
         case FIRE_EVENT:
-          //@ assume true && repOk();
           fireEventRequests.offer((Request<Integer>)fireEventChannel.in().read());
           break;
 
         case SUBSCRIBE:
-          //@ assume preSubscribe(pid, eid) && repOk();
           subscribeRequests.offer((Request<int[]>)subscribeChannel.in().read());
           break;
           
         case UNSUBSCRIBE:
-          //@ assume preUnsubscribe(pid, eid) && repOk();
           unsubscribeRequests.offer((Request<int[]>)unsubscribeChannel.in().read());
           break;
           
         case LISTEN:
-          //@ assume preListen(pid) && repOk();
           listenRequests.offer((Request<Integer>)listenChannel.in().read());
           break;
       }
       
       /**
        * Unblocking code
-       * 
        * Must always process all request which is associated CPRE holds
        */
       Request<Integer> request;

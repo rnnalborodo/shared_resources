@@ -6,21 +6,24 @@ import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.ChannelInput;
 import org.jcsp.lang.Guard;
-import org.jcsp.lang.ProcessInterruptedException;
 
 import es.upm.babel.ccjml.samples.semaphore.java.pRequest;
 import es.upm.babel.ccjml.samples.semaphore.java.vRequest;
 
 /**
- * Semaphore implementation using JCSP Library.
- * 
- * @author rnnalborodo
+ * Semaphore implementation using JCSP Library with channel expansion.
+ *
+ * @author BABEL Group
  */
 public class BoundedSemaphoreCSP implements BoundedSemaphore, CSProcess {
   
+  /** SHARED RESOURCE IMPLEMENTATION */
+  //@ public instance invariant value >= 0 && value <= bound;
   private int value;
+  //@ public instance invariant 0 < bound;
   private int bound;
   
+  /** WRAPPER IMPLEMENTATION */
   private final Any2OneChannel vChannel = Channel.any2one();
   private final Any2OneChannel pChannel = Channel.any2one();
 
@@ -41,59 +44,74 @@ public class BoundedSemaphoreCSP implements BoundedSemaphore, CSProcess {
   
   @Override
   public void v() {
+    //@ assume true;
     vChannel.out().write(new vRequest());
   }
   
   @Override
   public void p() {
+    //@ assume true;
     pChannel.out().write(new pRequest());
   }
-
-  //server side code
-  private static final int V = 0;
-  private static final int P = 1;
   
+  /** Constants representing API method's */
+  final int V = 0;
+  final int P = 1;
+
+  /** SERVER IMPLEMENTATION */
   @Override
   public void run() {
+    /*
+     * One entry for each associated predicated
+     */
     Guard[] inputs = {
       vChannel.in(),
       pChannel.in()
     };
-    Alternative services = new Alternative(inputs);
-//    Alternative services = new Alternative({this.value, !this.value});
-    int choice = 0;
+
+    final Alternative services = new Alternative(inputs);
+    int choice;
+
+    /**
+     *  Conditional reception for fairSelect().
+     *  Should be refreshed every iteration.
+     */
+    boolean syncCond[] = new boolean[2];
+    //@ assume syncCond.length == 2;
+
+    
     while (true) {
-      try {
-        choice = services.fairSelect();
-      } catch (ProcessInterruptedException e){}
+      // refreshing synchronization conditions
+      syncCond[0] = this.value < this.bound;
+      syncCond[1] = this.value > 0;
+      //@ assume syncCond[0] ==> cpreV();
+      //@ assume syncCond[1] ==> cpreP();
+      //@ assume syncCond.length == 2;
+
+      choice = services.fairSelect(syncCond);
 
       switch(choice){
-      case V: 
-        if (cpreV()) {
+        case V: 
+          //@ assert true && cpreV();
           ChannelInput in = vChannel.in();
           in.read();
           innerV();
-        }
-        break;
+          break;
 
-      case P:
-        if (cpreP()){
+        case P:
+          //@ assert true && cpreV();
           ChannelInput input = pChannel.in();
           input.read();
           innerP();
-        }
       }
-    //  end{jml_clause:classServer}
     }
   }
 
-  
-  public void innerV() {
+  private void innerV() {
     value++;
   }
 
-  public void innerP(){
+  private void innerP(){
     value--;
   }
-
 }

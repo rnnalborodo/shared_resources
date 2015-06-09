@@ -9,7 +9,7 @@ import es.upm.babel.cclib.Monitor;
  *
  * @author BABEL Group
  */
-public class MultibufferMonitor extends AMultibuffer{
+public class MultibufferMonitorOptimized extends AMultibuffer{
   
   private final static Logger log = Logger.getLogger(MultibufferMonitor.class.getName());
   
@@ -21,7 +21,7 @@ public class MultibufferMonitor extends AMultibuffer{
   //@ public normal_behaviour
   //@ ensures \result == maxData > 0 && data.length() <= maxData;
   //@ public model pure boolean invariant();
-  public MultibufferMonitor(int m) {
+  public MultibufferMonitorOptimized(int m) {
     MAX = m;
     this.nData = 0;
     this.buffer = new Object[m];
@@ -108,14 +108,14 @@ public class MultibufferMonitor extends AMultibuffer{
     @*/
   private void unblobckingCode(){
     int signaled = 0;
-    for (int i = 0; i < MAX && signaled == 0; i++){
+    for (int i = nData; i > 0 && signaled == 0; i--){
       if (fullness[i].waiting() > 0) {
         fullness[i].signal();
         //@ assert cpreGet(i);
         signaled++;
       }
     }
-    for (int i = 0; i < MAX && signaled == 0; i++){
+    for (int i = MAX-nData; i > 0 && signaled == 0; i--){
       if (emptiness[i].waiting() > 0) {
         emptiness[i].signal();
         //@ assert cprePut(i);
