@@ -1,4 +1,4 @@
-package es.upm.babel.ccjml.samples.multibuffer.java;
+package es.upm.babel.ccjml.samples.bufferoddeven.java;
 
 import org.jcsp.lang.One2OneChannel;
 

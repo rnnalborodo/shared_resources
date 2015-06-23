@@ -11,7 +11,13 @@ import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
 import org.jcsp.lang.ProcessInterruptedException;
 
-public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements CSProcess {
+/**
+ * Missing break statement in AFTER_WRITE switch condition.
+ * 
+ * @author BABEL Group
+ *
+ */
+public class ReadersWritersCSPDeferredRequestBuggy extends AReadersWriters implements CSProcess {
 
   /** WRAPPER IMPLEMENTATION */
   /**
@@ -30,7 +36,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
   private final Queue<Request<Object>> afterWriteRequests = new LinkedList<>();
   private final Queue<Request<Object>> afterReadRequests = new LinkedList<>();
   
-  public ReadersWritersCSPDeferredRequest() {}
+  public ReadersWritersCSPDeferredRequestBuggy() {}
   
   // API for this resource
   @Override
@@ -108,7 +114,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
         case AFTER_WRITE: 
           //@ assert true;
           afterWriteRequests.offer((Request<Object>)ch_afterWrite.in().read());
-          break;
+
 
         case AFTER_READ:
           //@ assert true;

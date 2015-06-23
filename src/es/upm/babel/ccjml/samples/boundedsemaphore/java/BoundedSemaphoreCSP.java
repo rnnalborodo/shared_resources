@@ -8,7 +8,7 @@ import org.jcsp.lang.ChannelInput;
 import org.jcsp.lang.Guard;
 
 import es.upm.babel.ccjml.samples.semaphore.java.pRequest;
-import es.upm.babel.ccjml.samples.semaphore.java.vRequest;
+import es.upm.babel.ccjml.samples.semaphore.java.vRequests;
 
 /**
  * Semaphore implementation using JCSP Library with channel expansion.
@@ -24,8 +24,9 @@ public class BoundedSemaphoreCSP implements BoundedSemaphore, CSProcess {
   private int bound;
   
   /** WRAPPER IMPLEMENTATION */
-  private final Any2OneChannel vChannel = Channel.any2one();
-  private final Any2OneChannel pChannel = Channel.any2one();
+  /** Channel for receiving external request for each method */
+  private final Any2OneChannel ch_v = Channel.any2one();
+  private final Any2OneChannel ch_p = Channel.any2one();
 
   public BoundedSemaphoreCSP(int v){
     bound = v;
@@ -45,32 +46,32 @@ public class BoundedSemaphoreCSP implements BoundedSemaphore, CSProcess {
   @Override
   public void v() {
     //@ assume true;
-    vChannel.out().write(new vRequest());
+    ch_v.out().write(new vRequests());
   }
   
   @Override
   public void p() {
     //@ assume true;
-    pChannel.out().write(new pRequest());
+    ch_p.out().write(new pRequest());
   }
   
-  /** Constants representing API method's */
+  /** SERVER IMPLEMENTATION */
+  /** Constants representing the method presented in the API */
   final int V = 0;
   final int P = 1;
 
-  /** SERVER IMPLEMENTATION */
   @Override
   public void run() {
     /*
      * One entry for each associated predicated
      */
-    Guard[] inputs = {
-      vChannel.in(),
-      pChannel.in()
+    Guard[] guards = {
+      ch_v.in(),
+      ch_p.in()
     };
 
-    final Alternative services = new Alternative(inputs);
-    int choice;
+    final Alternative services = new Alternative(guards);
+    int chosenService;
 
     /**
      *  Conditional reception for fairSelect().
@@ -82,35 +83,41 @@ public class BoundedSemaphoreCSP implements BoundedSemaphore, CSProcess {
     
     while (true) {
       // refreshing synchronization conditions
-      syncCond[0] = this.value < this.bound;
-      syncCond[1] = this.value > 0;
+      syncCond[V] = this.value < this.bound;
+      syncCond[P] = this.value > 0;
       //@ assume syncCond[0] ==> cpreV();
       //@ assume syncCond[1] ==> cpreP();
       //@ assume syncCond.length == 2;
 
-      choice = services.fairSelect(syncCond);
+      chosenService = services.fairSelect(syncCond);
 
-      switch(choice){
+      switch(chosenService){
         case V: 
           //@ assert true && cpreV();
-          ChannelInput in = vChannel.in();
+          ChannelInput in = ch_v.in();
           in.read();
           innerV();
           break;
 
         case P:
           //@ assert true && cpreV();
-          ChannelInput input = pChannel.in();
+          ChannelInput input = ch_p.in();
           input.read();
           innerP();
       }
     }
   }
 
+  //@ public normal_behaviour
+  //@   cond_sync value > 0;
+  //@   ensures value == \old(value) + 1;
   private void innerV() {
     value++;
   }
-
+  
+  //@ public normal_behaviour
+  //@   cond_sync value > 0;
+  //@   ensures value == \old(value) - 1;
   private void innerP(){
     value--;
   }

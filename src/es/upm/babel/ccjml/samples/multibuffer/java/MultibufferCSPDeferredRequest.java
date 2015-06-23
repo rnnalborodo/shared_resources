@@ -13,6 +13,8 @@ import org.jcsp.lang.ChannelInput;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
 import org.jcsp.lang.ProcessInterruptedException;
+
+import es.upm.babel.cclib.ConcIO;
   
 /** 
  * Multibuffer implementation JCSP Library with deferred request processing. 
@@ -83,7 +85,6 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
     
     while (true){
       chosenService = services.fairSelect();
-  
       switch(chosenService){
         case PUT: 
           ChannelInput inputProducers = putChannel.in();
@@ -100,7 +101,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
        * Unblocking code
        * Must always process all request which is associated CPRE holds
        */
-      boolean anyResumed = false;
+      boolean anyResumed;
       do {
         anyResumed = false;
   
@@ -108,12 +109,13 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
         for (int i = 0; i < lastItem; i++) {
           PutRequestCSP currentProducer = producersRequest.get(QUEUE_HEAD);
           producersRequest.remove(QUEUE_HEAD);
-          
+
           if (currentProducer.getFst() <= MAX - nData){
             //@ assume (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
             ChannelInput chIn = currentProducer.getSnd().in();
             Object[] items = (Object[])chIn.read();
             this.innerPut(items);
+            currentProducer.getChannel().out().write(null);
             anyResumed = true; 
           } else {
             producersRequest.add(producersRequest.size(), currentProducer);

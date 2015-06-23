@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import es.upm.babel.cclib.Monitor;
 
 /** 
- * Multibuffer implementation using locks and conditions. 
+ * Multibuffer implementation using monitors and conditions.
  *
  * @author BABEL Group
  */
@@ -86,6 +86,7 @@ public class MultibufferMonitor extends AMultibuffer{
     return gotData;
   }
 
+  private int signaled;
   //@ requires true;
   //@ assignable emptiness[*], fullness[*];
   /*@ ensures 
@@ -106,8 +107,9 @@ public class MultibufferMonitor extends AMultibuffer{
     @      )
     @   );
     @*/
+  //@ ensures signaled == 0 || signaled == 1;
   private void unblobckingCode(){
-    int signaled = 0;
+    signaled = 0;
     for (int i = 0; i < MAX && signaled == 0; i++){
       if (fullness[i].waiting() > 0) {
         fullness[i].signal();

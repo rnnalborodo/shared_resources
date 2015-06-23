@@ -5,13 +5,15 @@ import org.junit.After;
 import org.junit.Before;
 
 import es.upm.babel.ccjml.samples.boundedsemaphore.java.BoundedSemaphoreCSP;
+import es.upm.babel.ccjml.samples.boundedsemaphore.java.BoundedSemaphoreCSPDeferredRequest;
 import es.upm.babel.ccjml.samples.semaphore.java.test.TestSemaphore;
 
 public class TestBoundedSemaphoreCSP extends TestBoundedSemaphore {
 
   @Before public void setUp() {
-    BOUND = 1;
-    BoundedSemaphoreCSP semCSP = new BoundedSemaphoreCSP(BOUND);
+    BOUND = 10;
+    BoundedSemaphoreCSPDeferredRequest semCSP = new BoundedSemaphoreCSPDeferredRequest(BOUND);
+//    BoundedSemaphoreCSP semCSP = new BoundedSemaphoreCSP(BOUND);
     ProcessManager pm = new ProcessManager(semCSP);
     this.resource = semCSP;
     this.trace = "";

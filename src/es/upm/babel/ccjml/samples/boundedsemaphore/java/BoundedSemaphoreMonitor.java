@@ -9,6 +9,7 @@ import es.upm.babel.cclib.Monitor;
  */
 public class BoundedSemaphoreMonitor implements BoundedSemaphore {
 
+  /** Guarantee mutual exclusion in critic sections */
   private Monitor mutex;
   private Monitor.Cond v;
   private Monitor.Cond p;
@@ -66,7 +67,7 @@ public class BoundedSemaphoreMonitor implements BoundedSemaphore {
       v.signal();
     }
     
-    // assert : only one thread is awakened
+    //assert : only one thread is awakened due to if statement
     mutex.leave();
   }
 

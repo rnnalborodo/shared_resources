@@ -1,0 +1,26 @@
+\begin{ctadsol}
+
+  \nombrectad{BufferOddEven}
+  %
+  \operaciones
+  \operacion{Put}{\nat[i]} 
+  \operacion{Get}{(Even|Odd)[i]\times \nat[o]}
+  %
+  \semdom
+  \estado{BufferOddEven =  Sequence(ANY)}
+  \invariante{\forall mb \in BufferEvenOdd \st\ \lng{mb} \leq MAX}
+  % \donde{$$MAX = ...}
+  \inicial{self}{\lng{self} = 0}
+
+  \cpre{\lng{self} \leq MAX - 1}
+  \nomop{Put(d)}
+  \post{l = \lng{self\ent} \wedge \lng{self\sal} = l + 1 \wedge 
+         self\sal(l+1) = d\ent \wedge self\sal(1..l) = self\ent}
+  
+  \cpre{\lng{self} > 0 \wedge (d \mathbin{mod} 2 = 0
+          \leftrightarrow t = Even)}
+  \nomop{Get(t, d)}
+  \post{l = \lng{self\ent} \wedge self\ent(1) = d\sal \wedge 
+         self\sal = self\ent(2..l)} 
+
+\end{ctadsol}

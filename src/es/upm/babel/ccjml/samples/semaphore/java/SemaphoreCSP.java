@@ -27,7 +27,7 @@ public class SemaphoreCSP implements Semaphore, CSProcess {
 
   @Override
   public void v() {
-    vChannel.out().write(new vRequest());
+    vChannel.out().write(new vRequests());
   }
   
   @Override

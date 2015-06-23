@@ -5,12 +5,14 @@ import org.junit.After;
 import org.junit.Before;
 
 import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWritersCSP;
+import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWritersCSPOptimized;
 import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWritersSync;
 
 public class TestReadersWritersCSP extends TestReadersWriters {
 
   // Run before every test
   @Before public void setUp() {
+//    ReadersWritersCSPOptimized rwCSPRes = new ReadersWritersCSPOptimized();
     ReadersWritersCSP rwCSPRes = new ReadersWritersCSP();
     ProcessManager pm = new ProcessManager(rwCSPRes);
     this.resource = rwCSPRes;

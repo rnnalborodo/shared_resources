@@ -31,8 +31,8 @@ public class BoundedSemaphoreCSPDeferredRequest implements BoundedSemaphore, CSP
   /** 
    * List for enqueue all request for each method
    */
-  private final List<One2OneChannel> vRequest = new ArrayList<>();
-  private final List<One2OneChannel> pRequest = new ArrayList<>();
+  private final List<One2OneChannel> vRequest = new ArrayList<One2OneChannel>();
+  private final List<One2OneChannel> pRequest = new ArrayList<One2OneChannel>();
 
 
   public BoundedSemaphoreCSPDeferredRequest(int v){
@@ -81,12 +81,12 @@ public class BoundedSemaphoreCSPDeferredRequest implements BoundedSemaphore, CSP
     };
 
     final Alternative services = new Alternative(inputs);
-    int choice;
+    int chosenService;
 
     while (true) {
-      choice = services.fairSelect();
+      chosenService = services.fairSelect();
 
-      switch(choice){
+      switch(chosenService){
         case V: 
           ChannelInput ch = vChannel.in();
           vRequest.add((One2OneChannel)ch.read());

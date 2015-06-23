@@ -79,7 +79,8 @@ public abstract class TestMultibuffer {
     final protected int DELAY_MIN_MS = 25;
 
     // Constant for buffer capacity
-    final protected int MAX_DATA = 3;
+    final protected int MAX_DATA = 4;
+    final private int MAX_DATA_ = MAX_DATA /2 ;
 
     // Internal counter to generate consecutive integers
     private int id = 0;
@@ -96,14 +97,14 @@ public abstract class TestMultibuffer {
 
     // No sensible put gets blocked after initialization
     @Test public void test_put_do_not_block_after_init() {
-        Put[] p = new Put[MAX_DATA];
-        for (int i = 0; i < MAX_DATA; i++) {
+        Put[] p = new Put[MAX_DATA_];
+        for (int i = 0; i < MAX_DATA_; i++) {
             p[i] = new Put(createInts(i+1));
             p[i].start();
             p[i].gimmeTime(DELAY_MIN_MS);
         }
         int nData = 0;
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             nData += i + 1;
             if (nData <= MAX_DATA) {
                 assertTrue(trace + "-> " + p[i].call() + " shouldn't block",
@@ -118,13 +119,13 @@ public abstract class TestMultibuffer {
 
     // No get should proceed after initialization
     @Test public void test_get_blocks_after_init() {
-        Get[] g = new Get[MAX_DATA];
-        for (int i = 0; i < MAX_DATA; i++) {
+        Get[] g = new Get[MAX_DATA_];
+        for (int i = 0; i < MAX_DATA_; i++) {
             g[i] = new Get(i+1);
             g[i].start();
             g[i].gimmeTime(DELAY_MIN_MS);
         }
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             assertTrue(trace + "-> " + g[i].call() + " should block",
                        g[i].isBlocked());
         }
@@ -139,7 +140,7 @@ public abstract class TestMultibuffer {
             int nData = 0;
             int nGets;
             int n;
-            for (n = 1; nData + n <= MAX_DATA; n++) {
+            for (n = 1; nData + n <= MAX_DATA_; n++) {
                 Put p = new Put(createInts(n));
                 p.start();
                 p.gimmeTime(DELAY_MIN_MS);
@@ -188,11 +189,11 @@ public abstract class TestMultibuffer {
 
     // Put blocks properly
     @Test public void test_put_blocks_properly() {
-        for (int n = 1; n < MAX_DATA; n++) {
-            multi = new MultibufferSync(MAX_DATA);
+        for (int n = 1; n < MAX_DATA_; n++) {
+            multi = new MultibufferSync(MAX_DATA_);
             trace = "";
             put1By1(n);
-            Put p = new Put(createInts(MAX_DATA - n + 1));
+            Put p = new Put(createInts(MAX_DATA_ - n + 1));
             p.start();
             p.gimmeTime(DELAY_MIN_MS);
             assertTrue(trace + "-> " + p.call() + " should block",
@@ -202,8 +203,8 @@ public abstract class TestMultibuffer {
 
     // Put blocks properly
     @Test public void test_get_blocks_properly() {
-        for (int n = 1; n < MAX_DATA; n++) {
-            multi = new MultibufferSync(MAX_DATA);
+        for (int n = 1; n < MAX_DATA_; n++) {
+            multi = new MultibufferSync(MAX_DATA_);
             trace = "";
             put1By1(n);
             Get g = new Get(n + 1);
@@ -216,18 +217,18 @@ public abstract class TestMultibuffer {
 
     // Put unblocks properly
     @Test public void test_put_unblocks_properly() {
-        Put[] p = new Put[MAX_DATA];
+        Put[] p = new Put[MAX_DATA_];
         put1By1(MAX_DATA);
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             p[i] = new Put(createInts(i+1));
             p[i].start();
             p[i].gimmeTime(DELAY_MIN_MS);
         }
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             assertTrue(trace + "-> " + p[i].call() + " should block",
                        p[i].isBlocked());
         }
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             Get g = new Get(i + 1);
             g.start();
             g.gimmeTime(DELAY_MIN_MS);
@@ -240,17 +241,17 @@ public abstract class TestMultibuffer {
 
     // Get unblocks properly
     @Test public void test_get_unblocks_properly() {
-        Get[] g= new Get[MAX_DATA];
-        for (int i = 0; i < MAX_DATA; i++) {
+        Get[] g= new Get[MAX_DATA_];
+        for (int i = 0; i < MAX_DATA_; i++) {
             g[i] = new Get(i+1);
             g[i].start();
             g[i].gimmeTime(DELAY_MIN_MS);
         }
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             assertTrue(trace + "-> " + g[i].call() + " should block",
                        g[i].isBlocked());
         }
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             Put p = new Put(createInts(i + 1));
             p.start();
             p.gimmeTime(DELAY_MIN_MS);
@@ -263,24 +264,24 @@ public abstract class TestMultibuffer {
 
     // Put priority: FIFO
     @Test public void test_put_fifo_priority() {
-        Put[] p = new Put[MAX_DATA];
-        put1By1(MAX_DATA);
-        for (int i = 0; i < MAX_DATA; i++) {
+        Put[] p = new Put[MAX_DATA_];
+        put1By1(MAX_DATA_);
+        for (int i = 0; i < MAX_DATA_; i++) {
             p[i] = new Put(createInts(i+1));
             p[i].start();
             p[i].gimmeTime(DELAY_MIN_MS);
         }
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             assertTrue(trace + "-> " + p[i].call() + " should block",
                        p[i].isBlocked());
         }
-        for (int i = 0; i < MAX_DATA; i++) {
-            Get g = new Get(MAX_DATA - i);
+        for (int i = 0; i < MAX_DATA_; i++) {
+            Get g = new Get(MAX_DATA_ - i);
             g.start();
             g.gimmeTime(DELAY_MIN_MS);
             assertTrue(trace + "-> " + g.call() + " shouldn't block",
                        !g.isBlocked());
-            for (int j = i + 1; j < MAX_DATA; j++) {
+            for (int j = i + 1; j < MAX_DATA_; j++) {
                 assertTrue(trace + "-> " + p[j].call() + " shouldn't have unblocked",
                            !p[j].isBlocked());
             }
@@ -291,23 +292,23 @@ public abstract class TestMultibuffer {
 
     // Get priority: FIFO
     @Test public void test_get_fifo_priority() {
-        Get[] g = new Get[MAX_DATA];
-        for (int i = 0; i < MAX_DATA; i++) {
+        Get[] g = new Get[MAX_DATA_];
+        for (int i = 0; i < MAX_DATA_; i++) {
             g[i] = new Get(i+1);
             g[i].start();
             g[i].gimmeTime(DELAY_MIN_MS);
         }
-        for (int i = 0; i < MAX_DATA; i++) {
+        for (int i = 0; i < MAX_DATA_; i++) {
             assertTrue(trace + "-> " + g[i].call() + " should block",
                        g[i].isBlocked());
         }
-        for (int i = 0; i < MAX_DATA; i++) {
-            Put p = new Put(createInts(MAX_DATA - i));
+        for (int i = 0; i < MAX_DATA_; i++) {
+            Put p = new Put(createInts(MAX_DATA_ - i));
             p.start();
             p.gimmeTime(DELAY_MIN_MS);
             assertTrue(trace + "-> " + p.call() + " shouldn't block",
                        !p.isBlocked());
-            for (int j = i + 1; j < MAX_DATA; j++) {
+            for (int j = i + 1; j < MAX_DATA_; j++) {
                 assertTrue(trace + "-> " + g[j].call() + " shouldn't have unblocked",
                            !g[j].isBlocked());
             }

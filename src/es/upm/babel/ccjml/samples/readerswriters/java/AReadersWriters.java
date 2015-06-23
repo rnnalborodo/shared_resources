@@ -23,14 +23,14 @@ public abstract class AReadersWriters implements ReadersWriters {
     return "RW = [ reader = " + readers + " | writers= " + writers + "]";
   }
   
-  /*@ ensures  \result == (readers > 0 ==> writers == 0) &&
-    @              (writers > 0 ==> readers == 0) &&
-    @              (writers == 0 || writers == 1);
+  /*@ ensures  \result == readers >= 0 && writers >= 0 &&
+    @                     (readers > 0 ==> writers == 0) &&
+    @                     (writers > 0 ==> readers == 0 && writers == 1);
     @*/     
   public boolean repOk(){
-    return  (readers == 0 || writers == 0) &&
-            (writers == 0 || readers == 0) &&
-            (writers == 0 || writers == 1);
+    return readers >= 0 && writers >= 0 &&
+           ((readers > 0 && writers == 0) ||
+           (writers > 0 && readers == 0 && writers == 1));
   }
 
 }

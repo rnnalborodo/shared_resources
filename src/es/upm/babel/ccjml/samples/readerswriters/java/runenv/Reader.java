@@ -38,14 +38,11 @@ public class Reader extends Thread {
     ConcIO.printfnl("Asking to read ");
     sharedResource.beforeRead();
     ConcIO.printfnl("Granted ");
-    
     try {
       Thread.sleep(random.nextInt(1500));
     } catch (InterruptedException ex) {
-    //     ConcIO.printfnl("exception caught: " + ex);
       Logger.getLogger(DataProcessor.class.getName()).log(Level.SEVERE, null, ex);
     } finally {
-    //     ConcIO.printfnl("end processing:  " + t + "ms.");
     }
 
     ConcIO.printfnl("Trying to read ");

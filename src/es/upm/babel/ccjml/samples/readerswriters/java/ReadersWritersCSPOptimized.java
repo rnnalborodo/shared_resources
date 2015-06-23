@@ -7,12 +7,7 @@ import org.jcsp.lang.Channel;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.ProcessInterruptedException;
 
-/**
- * Readers-Writers implementation using JCSP Library with channel expansion.
- *
- * @author BABEL Group
- */
-public class ReadersWritersCSP extends AReadersWriters implements CSProcess {
+public class ReadersWritersCSPOptimized extends AReadersWriters implements CSProcess {
   
   /** WRAPPER IMPLEMENTATION */
   /**
@@ -23,7 +18,7 @@ public class ReadersWritersCSP extends AReadersWriters implements CSProcess {
   private final Any2OneChannel ch_afterWrite  = Channel.any2one();
   private final Any2OneChannel ch_afterRead   = Channel.any2one();
   
-  public ReadersWritersCSP() {}
+  public ReadersWritersCSPOptimized() {}
 
   @Override
   public void beforeWrite() {
@@ -74,14 +69,15 @@ public class ReadersWritersCSP extends AReadersWriters implements CSProcess {
      *  Should be refreshed every iteration.
      */
     boolean syncCond[] = new boolean[4];
+    syncCond[AFTER_WRITE] = true;
+    syncCond[AFTER_READ] = true;
+
     
     Alternative services = new Alternative(guards);
     int chosenService = 0;
     while (true) {
       syncCond[BEFORE_WRITE] = (readers + writers == 0);
       syncCond[BEFORE_READ] = writers == 0;
-      syncCond[AFTER_WRITE] = true;
-      syncCond[AFTER_READ] = true;
       //@ assert syncCond is consistent,i.e, all refreshments are done properly
       
       chosenService = services.fairSelect(syncCond);

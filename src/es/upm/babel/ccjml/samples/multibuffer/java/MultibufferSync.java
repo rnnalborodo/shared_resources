@@ -7,6 +7,7 @@ package es.upm.babel.ccjml.samples.multibuffer.java;
  *
  * @author BABEL Group
  */
+
 public class MultibufferSync implements Multibuffer {
   private Object[] buffer; /*@ in data; @*/
   private int first; /*@ in data; @*/
