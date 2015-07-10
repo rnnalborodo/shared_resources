@@ -1,25 +1,34 @@
 package es.upm.babel.ccjml.samples.bufferoddeven.java;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Queue;
+
 import org.jcsp.lang.Alternative;
 import org.jcsp.lang.AltingChannelInput;
 import org.jcsp.lang.Any2OneChannel;
 import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
+import org.jcsp.lang.ChannelInput;
 import org.jcsp.lang.ChannelOutput;
 import org.jcsp.lang.One2OneChannel;
-import org.jcsp.lang.ProcessInterruptedException;
 
-import es.upm.babel.ccjml.samples.bufferoddeven.java.BufferOddEven.Type;
+import es.upm.babel.cclib.ConcIO;
 
 public class BufferOddEvenCSPDeferredRequest implements BufferOddEven, CSProcess {
 
   /** WRAPPER Implementation */
   private final Any2OneChannel chPut;
-  private final Any2OneChannel chGetEven;
-  private final Any2OneChannel chGetOdd;
+  private final Any2OneChannel chGet;
+  /** 
+   * List for enqueue all request for each method
+   */
+  private final Queue<PutRequestCSP> putRequest = new ArrayDeque<>();
+  private final Queue<GetRequestCSP> getRequest = new ArrayDeque<>();
 
   private int MAX;
-  /*@ private represents maxData <- TAM; @*/
 
   private int buffer[]; /*@ in data; @*/
   /*@ private represents
@@ -44,8 +53,7 @@ public class BufferOddEvenCSPDeferredRequest implements BufferOddEven, CSProcess
     nData = 0;
 
     chPut = Channel.any2one();
-    chGetEven = Channel.any2one();
-    chGetOdd = Channel.any2one();  
+    chGet = Channel.any2one();  
   }
 
   /*@ public normal_behaviour
@@ -61,80 +69,95 @@ public class BufferOddEvenCSPDeferredRequest implements BufferOddEven, CSProcess
     @          (t == EVEN && \result == buffer[first] % 2 == 0)  ;
     @*/
   private boolean cpreGet(Type t) {
-    return nData > 0 && ((buffer[first] % 2 == 0 && t == Type.EVEN) || (buffer[first] % 2 == 1 && t == Type.ODD));
+    return nData > 0 && ((buffer[first] % 2 == 0 && t == Type.EVEN) || 
+           (buffer[first] % 2 == 1 && t == Type.ODD));
   }
 
   @Override
   public void put(int d) {
-    chPut.out().write(d);
+    //@ assume true && invariant();
+    One2OneChannel innerChannel = Channel.one2one();
+    chPut.out().write(new PutRequestCSP(d, innerChannel));
+    
+    innerChannel.in().read();
   }
 
   @Override
   public int get(Type t) {
-    One2OneChannel chResp = Channel.one2one();
-    if (t.equals(Type.EVEN)) {
-      chGetEven.out().write(chResp.out());
-    } else {
-      chGetOdd.out().write(chResp.out());
-    }
-
-    return (Integer)chResp.in().read();
+    //@ assume true && invariant();
+    One2OneChannel innerChannel = Channel.one2one();
+    chGet.out().write(new GetRequestCSP(t, innerChannel));
+    
+    return (Integer)innerChannel.in().read();
   }
 
   /** SERVER IMPLEMENTATION */
-  private final int GET_EVEN = 0;
-  private final int GET_ODD = 1;
-  private final int PUT = 2;
+  private final int PUT = 0;
+  private final int GET = 1;
+  private final int QUEUE_HEAD = 2;
 
   @Override
   public void run() {
-    /* 
-     * One entry for each associated predicated. 
-     * Union of all channel lists.
-     */
+    //One entry for each associated predicated
     AltingChannelInput[] inputs = {
-        chGetEven.in(), 
-        chGetOdd.in(), 
-        chPut.in()
+        chPut.in(), 
+        chGet.in()
     };
     Alternative services = new Alternative(inputs);
     int chosenService = 0;
-    ChannelOutput cresp;
-    
-    /**
-     *  Conditional reception for fairSelect().
-     *  Should be refreshed every iteration.
-     */
-    boolean[] syncCond = new boolean[3];
-    syncCond[GET_EVEN] = cpreGet(Type.EVEN);
-    syncCond[GET_ODD] = cpreGet(Type.ODD) ;
-    syncCond[PUT] = nData < MAX;
-    
+    ChannelInput cresp;
 
     while (true) {
-      syncCond[GET_EVEN] = cpreGet(Type.EVEN);
-      syncCond[GET_ODD] = cpreGet(Type.ODD) ;
-      syncCond[PUT] = nData < MAX;
-      
-      chosenService = services.fairSelect(syncCond);
+
+      chosenService = services.fairSelect();
 
       switch (chosenService){
-        case GET_EVEN:
-          //@ assume cpreGet(Type.EVEN);
-          cresp =(ChannelOutput) chGetEven.in().read();
-          cresp.write(innerGet());
-          break;
-        case GET_ODD:
-          //@ assume cpreGet(Type.ODD);
-          cresp =(ChannelOutput) chGetOdd.in().read();
-          cresp.write(innerGet());
-          break;
         case PUT:
-          //@ assume cprePut();
-          int d = (Integer) chPut.in().read();
-          buffer[(first +nData)%MAX] = d;
-          nData++;
+          cresp = chPut.in();
+          putRequest.offer((PutRequestCSP) cresp.read());
+          break;
+        case GET:
+          cresp = chGet.in();
+          getRequest.offer((GetRequestCSP) cresp.read());
+          break;
       }
+      
+      /**
+       * Unblocking code
+       * Must always process all request which is associated CPRE holds
+       */
+      boolean anyResumed;
+      do {
+        anyResumed = false;
+        
+        for(PutRequestCSP rq : putRequest){
+          
+          if (nData < MAX){
+            putRequest.remove(rq);
+            //@ assume true && invariant() && nData < MAX;
+
+            buffer[(first +nData)%MAX] = rq.getFst();
+            nData++;
+
+            rq.getChannel().out().write(null);
+            anyResumed = true; 
+          } 
+        }
+        
+        for(GetRequestCSP rq : getRequest){
+          if (nData > 0){
+            if ( (buffer[first] % 2 == 0 && rq.getType() == Type.EVEN ) ||
+                (buffer[first] % 2 == 1 && rq.getType() == Type.ODD )){
+              //@assume true && invariant && cpreGet(rq.getType());
+              getRequest.remove(rq);
+              rq.getChannel().out().write(this.innerGet());
+              anyResumed = true;
+            }  
+          } 
+        }
+        
+      } while (anyResumed);
+      
     }// FIN BUCLE SERVICIO
   }// FIN SERVIDOR
   
@@ -144,5 +167,11 @@ public class BufferOddEvenCSPDeferredRequest implements BufferOddEven, CSProcess
     first%=MAX;
     nData--;
     return res;
+  }
+  
+  @Override
+  public String toString(){
+    return "buffer = " + Arrays.toString(buffer) + 
+           "(fst = " + first + ", nData = " +nData+")";
   }
 }

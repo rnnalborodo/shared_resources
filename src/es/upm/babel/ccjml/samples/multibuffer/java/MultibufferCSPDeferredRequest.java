@@ -27,7 +27,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
   /**
    *  Channel for receiving external request for each method
    */
-  private final Any2OneChannel putChannel = Channel.any2one();
+  private final Any2OneChannel chPut = Channel.any2one();
   private final Any2OneChannel getChannel = Channel.any2one();
 
   /** 
@@ -50,7 +50,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
   public void put(Object[] els) {
     //@assume els.length <= maxData / 2 && invariant();
     One2OneChannel innerChannel = Channel.one2one();
-    putChannel.out().write(new PutRequestCSP(els.length,innerChannel));
+    chPut.out().write(new PutRequestCSP(els.length,innerChannel));
     // data to be inserted
     innerChannel.out().write(els);
     innerChannel.in().read();
@@ -77,7 +77,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
   public void run() {
     /* One entry for each method. */
     Guard[] inputs = {
-      putChannel.in(),
+      chPut.in(),
       getChannel.in()
     };
     Alternative services = new Alternative(inputs);
@@ -87,7 +87,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
       chosenService = services.fairSelect();
       switch(chosenService){
         case PUT: 
-          ChannelInput inputProducers = putChannel.in();
+          ChannelInput inputProducers = chPut.in();
           producersRequest.add(producersRequest.size(),(PutRequestCSP) inputProducers.read());
           break;
   

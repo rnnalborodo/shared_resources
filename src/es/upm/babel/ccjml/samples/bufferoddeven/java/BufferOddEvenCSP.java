@@ -106,10 +106,6 @@ public class BufferOddEvenCSP implements BufferOddEven, CSProcess {
      *  Should be refreshed every iteration.
      */
     boolean[] syncCond = new boolean[3];
-    syncCond[GET_EVEN] = cpreGet(Type.EVEN);
-    syncCond[GET_ODD] = cpreGet(Type.ODD) ;
-    syncCond[PUT] = nData < MAX;
-    
 
     while (true) {
       syncCond[GET_EVEN] = cpreGet(Type.EVEN);

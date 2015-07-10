@@ -58,8 +58,8 @@ public class BufferOddEvenMonitor implements BufferOddEven {
 
   /*@ public normal_behaviour
     @  requires t == EVEN || t == ODD;
-    @  ensures (t == ODD && \result == buffer[first] % 2 == 1) || 
-    @          (t == EVEN && \result == buffer[first] % 2 == 0)  ;
+    @  ensures \result == (t == ODD && buffer[first] % 2 == 1) || 
+    @          (t == EVEN && buffer[first] % 2 == 0)  ;
     @*/
   private boolean cpreGet(Type t) {
     return nData > 0 && ((buffer[first] % 2 == 0 && t == Type.EVEN) || 
