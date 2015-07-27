@@ -7,9 +7,6 @@ import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.ChannelOutput;
 import org.jcsp.lang.One2OneChannel;
-import org.jcsp.lang.ProcessInterruptedException;
-
-import es.upm.babel.ccjml.samples.bufferoddeven.java.BufferOddEven.Type;
 
 public class BufferOddEvenCSP implements BufferOddEven, CSProcess {
 

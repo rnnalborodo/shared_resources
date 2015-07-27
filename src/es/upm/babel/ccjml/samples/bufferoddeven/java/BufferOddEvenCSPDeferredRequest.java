@@ -1,9 +1,7 @@
 package es.upm.babel.ccjml.samples.bufferoddeven.java;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Queue;
 
 import org.jcsp.lang.Alternative;
@@ -12,10 +10,7 @@ import org.jcsp.lang.Any2OneChannel;
 import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.ChannelInput;
-import org.jcsp.lang.ChannelOutput;
 import org.jcsp.lang.One2OneChannel;
-
-import es.upm.babel.cclib.ConcIO;
 
 public class BufferOddEvenCSPDeferredRequest implements BufferOddEven, CSProcess {
 

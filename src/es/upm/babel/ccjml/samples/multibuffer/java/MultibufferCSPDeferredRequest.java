@@ -1,9 +1,7 @@
 package es.upm.babel.ccjml.samples.multibuffer.java;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.jcsp.lang.Alternative;
 import org.jcsp.lang.Any2OneChannel;
@@ -12,9 +10,6 @@ import org.jcsp.lang.Channel;
 import org.jcsp.lang.ChannelInput;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
-import org.jcsp.lang.ProcessInterruptedException;
-
-import es.upm.babel.cclib.ConcIO;
   
 /** 
  * Multibuffer implementation JCSP Library with deferred request processing. 

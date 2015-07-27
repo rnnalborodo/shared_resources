@@ -3,7 +3,6 @@ package es.upm.babel.ccjml.samples.bufferoddeven.java.test;
 import org.junit.After;
 import org.junit.Before;
 
-import es.upm.babel.ccjml.samples.bufferoddeven.java.BufferOddEvenMonitor;
 import es.upm.babel.ccjml.samples.bufferoddeven.java.BufferOddEvenSync;
 
 public class TestBufferOddEvenSync extends TestBufferOddEven {

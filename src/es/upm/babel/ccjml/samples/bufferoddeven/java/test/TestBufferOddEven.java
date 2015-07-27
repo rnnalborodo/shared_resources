@@ -6,8 +6,6 @@ import org.junit.Test;
 
 import es.upm.babel.ccjml.samples.bufferoddeven.java.BufferOddEven;
 import es.upm.babel.ccjml.samples.bufferoddeven.java.BufferOddEven.Type;
-import es.upm.babel.ccjml.samples.multibuffer.java.Multibuffer;
-import es.upm.babel.ccjml.samples.multibuffer.java.MultibufferSync;
 import es.upm.babel.cclib.Tryer;
 
 public abstract class TestBufferOddEven {

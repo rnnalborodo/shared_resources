@@ -5,7 +5,6 @@ import org.jcsp.lang.Any2OneChannel;
 import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.Guard;
-import org.jcsp.lang.ProcessInterruptedException;
 
 public class ReadersWritersCSPOptimized extends AReadersWriters implements CSProcess {
   

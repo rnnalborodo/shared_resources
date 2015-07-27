@@ -2,27 +2,28 @@ package es.upm.babel.ccjml.samples.csp.list.src;
 
 public interface List {
     
-    //@ public model instance \locset footprint;
+    //@ public ghost instance \locset footprint;
+    //@ public ghost instance \seq seq;
+
+    //@ public instance invariant \subset(\singleton(this.seq), footprint);
+    //@ public instance invariant \subset(\singleton(this.footprint), footprint);
+    //@ public instance invariant (\forall int i; 0<=i && i<seq.length; seq[i] instanceof Object);
     //@ public accessible \inv: footprint;
-    //@ public accessible footprint: footprint;  
-    
-    //@ public instance invariant 0 <= size();
-    
-    
+
     /*@ public normal_behaviour
       @   accessible footprint;
-      @   ensures \result == size();
+      @   ensures \result == seq.length;
       @*/
     public /*@pure@*/ int size(); 
     
     
     /*@ public normal_behaviour
-      @   requires 0 <= index && index < size(); 
+      @   requires 0 <= index && index < seq.length; 
       @   accessible footprint;
-      @   ensures \result == get(index);
+      @   ensures \result == seq[index];
       @
       @ also public exceptional_behaviour
-      @   requires index < 0 || size() <= index;
+      @   requires index < 0 || seq.length <= index;
       @   signals_only IndexOutOfBoundsException;
       @*/
     public /*@pure@*/ Object get(int index);
@@ -30,50 +31,39 @@ public interface List {
     
     /*@ public normal_behaviour
       @   accessible footprint;
-      @   ensures \result == (\exists int i; 0 <= i && i < size(); get(i) == o);
+      @   ensures \result == (\exists int i; 0 <= i && i < seq.length; seq[i] == o);
       @*/
     public /*@pure@*/ boolean contains(Object o);      
     
     
     /*@ public normal_behaviour
       @   assignable footprint;
-      @   ensures size() == \old(size()) + 1 && get(size() - 1) == o;
-      @   ensures (\forall int i; 0 <= i && i < size() - 1; get(i) == \old(get(i)));
+      @   ensures seq == \seq_concat(\old(seq), \seq_singleton(o));
       @   ensures \new_elems_fresh(footprint);
       @*/    
-     public void add(Object o);
+    public void add(Object o);    
     
-    
-    /*@ public normal_behaviour
+    /* @ public normal_behaviour
       @   ensures \fresh(\result);
       @   ensures \result.list == this;
       @   ensures \result.pos == 0;
       @   ensures \result.\inv;
       @   ensures \disjoint(footprint, \result.*);
       @*/
-    public /*@pure@*/ ListIterator iterator();
+    //   public /*@pure@*/ ListIterator iterator();
     
     
     /*@ public normal_behaviour
-      @   requires (\forall int i; 0 <= i && i < size(); get(i) != o);
+      @   requires (\forall int i; 0 <= i && i < seq.length; seq[i] != o);
       @   assignable \nothing;
       @
       @ also public normal_behaviour
-      @   requires (\exists int i; 0 <= i && i < size(); get(i) == o);
+      @   requires (\exists int i; 0 <= i && i < seq.length; seq[i] == o);
       @   assignable footprint;
-      @   ensures size() == \old(size()) - 1;
-      @   ensures (\exists int i; 0 <= i && i < \old(size()) && \old(get(i)) == o;
-      @              (\forall int j; 0 <= j && j < i; get(j) == \old(get(j)))
-      @              && (\forall int k; i <= k && k < size(); get(k) == \old(get(k+1))));
+      @   ensures (\exists int i; 0 <= i && i < \old(seq).length && \old(seq[i]) == o;
+      @      seq == \old(\seq_concat(seq[0..i], seq[i+1..seq.length])));
       @   ensures \new_elems_fresh(footprint);
       @*/
     public void remove(Object o);
     
-    
-    /*@ public normal_behaviour 
-      @   requires l.\inv && \disjoint(footprint, l.footprint);
-      @   assignable footprint;
-      @   ensures \new_elems_fresh(\set_minus(footprint, l.footprint));
-      @*/
-    public void concatenate(List l);
 }

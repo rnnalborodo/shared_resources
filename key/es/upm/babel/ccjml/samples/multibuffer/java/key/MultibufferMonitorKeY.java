@@ -1,11 +1,14 @@
 package es.upm.babel.ccjml.samples.multibuffer.java.key;
 
-/**
- * @author rnnalborodo
+/** 
+ * Multibuffer implementation JCSP Library with deferred request processing. 
+ * KeY Instrumentation
+ *
+ * @author BABEL Group
  */
 public class MultibufferMonitorKeY{
   //@ ghost int awakenThread;
-  
+
   // Class members
   //@ public invariant MAX == 1;
   public static final int MAX = 1;
@@ -17,7 +20,7 @@ public class MultibufferMonitorKeY{
   private /*@ spec_public @*/ int nData;  
   /*@ public invariant 0 <= first && first < MAX; @*/
   private /*@ spec_public @*/ int first;
-  
+
   /*@ public invariant buffer.length == MAX; @*/
   private /*@spec_public@*/ int[] buffer;
 
@@ -98,7 +101,7 @@ public class MultibufferMonitorKeY{
     @    signaled == 1
     @  ;
     @*/
-// prop_signal_and_return - nothing to do here
+  // prop_signal_and_return - nothing to do here
   private void unblobckingCode(){
     // Second step using Model Search as Aritmetic Treatment
     //@ set awakenThread = -1; 

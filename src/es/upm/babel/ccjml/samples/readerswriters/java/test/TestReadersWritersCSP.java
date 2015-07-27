@@ -5,8 +5,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWritersCSP;
-import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWritersCSPOptimized;
-import es.upm.babel.ccjml.samples.readerswriters.java.ReadersWritersSync;
 
 public class TestReadersWritersCSP extends TestReadersWriters {
 

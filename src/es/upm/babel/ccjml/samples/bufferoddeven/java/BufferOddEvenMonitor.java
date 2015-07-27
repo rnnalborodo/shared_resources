@@ -2,8 +2,6 @@ package es.upm.babel.ccjml.samples.bufferoddeven.java;
 
 import java.util.Arrays;
 
-import es.upm.babel.ccjml.samples.bufferoddeven.java.BufferOddEven.Type;
-import es.upm.babel.cclib.ConcIO;
 import es.upm.babel.cclib.Monitor;
 import es.upm.babel.cclib.Monitor.Cond;
 

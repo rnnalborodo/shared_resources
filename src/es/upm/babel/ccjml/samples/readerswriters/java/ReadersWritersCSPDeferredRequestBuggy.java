@@ -9,7 +9,6 @@ import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
-import org.jcsp.lang.ProcessInterruptedException;
 
 /**
  * Missing break statement in AFTER_WRITE switch condition.

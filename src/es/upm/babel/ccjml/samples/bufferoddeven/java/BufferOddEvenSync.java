@@ -3,10 +3,6 @@ package es.upm.babel.ccjml.samples.bufferoddeven.java;
 //@ model import org.jmlspecs.models.JMLObjectSequence;
 
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import es.upm.babel.cclib.ConcIO;
 
 /**
  * BufferOddEven implementation using synchronized methods.

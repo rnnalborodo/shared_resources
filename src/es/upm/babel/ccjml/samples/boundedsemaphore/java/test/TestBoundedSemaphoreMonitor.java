@@ -4,7 +4,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import es.upm.babel.ccjml.samples.boundedsemaphore.java.BoundedSemaphoreMonitor;
-import es.upm.babel.ccjml.samples.semaphore.java.test.TestSemaphore;
 
 public class TestBoundedSemaphoreMonitor extends TestBoundedSemaphore {
 
