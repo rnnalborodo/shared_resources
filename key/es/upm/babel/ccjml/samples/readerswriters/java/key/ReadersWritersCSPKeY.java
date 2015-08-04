@@ -1,30 +1,8 @@
 package es.upm.babel.ccjml.samples.readerswriters.java.key;
 
+import es.upm.babel.ccjml.samples.csp.JCSPKeY;
+
 public class ReadersWritersCSPKeY {
-  
-  //@ requires (syncCond.length == guards.length && guards.length > 0);
-  //@ requires (syncCond.length <=2);
-  /*@ ensures ((\result >= 0 && \result < syncCond.length) && 
-    @          (syncCond[\result] && guards[\result] > 0 ))
-    @       || (\result == -1 &&
-    @         (\forall int i; i >= 0 && i < syncCond.length; 
-    @                           !syncCond[i] || guards[i] == 0));
-    @*/
-  public static int /*@ pure @*/ fairSelect(boolean[] syncCond, int[] guards){
-    /*@ maintaining 0<=i && i < syncCond.length
-      @                && 
-      @                 (\forall int j; 0 <= j && j<i;
-      @                       !syncCond[i] || guards[i] == 0);
-      @ assignable \nothing;
-      @ decreasing syncCond.length-i;
-      @*/
-    for(int i = 0 ; i < syncCond.length; i++){
-      if (syncCond[i] && guards[i] > 0){
-        return i;
-      }
-    }
-    return -1;
-  }
   
   // SR invariant
   /*@ public invariant 
@@ -71,18 +49,18 @@ public class ReadersWritersCSPKeY {
    *  In this case, due to the operation CPRE do not depend on parameters, int 
    *  is enough.s 
    */  
-  //@ public invariant ch_beforeWrite >=0;
-  private int ch_beforeWrite;
-  //@ public invariant ch_beforeRead >=0;
-  private int ch_beforeRead;
-  //@ public invariant ch_afterWrite >=0;
-  private int ch_afterWrite;
-  //@ public invariant ch_afterRead >=0;
-  private int ch_afterRead;
+  //@ public invariant chBeforeWrite >=0;
+  private int chBeforeWrite;
+  //@ public invariant chBeforeRead >=0;
+  private int chBeforeRead;
+  //@ public invariant chAfterWrite >=0;
+  private int chAfterWrite;
+  //@ public invariant chAfterRead >=0;
+  private int chAfterRead;
   
   public ReadersWritersCSPKeY() {}
 
-  // SERVER SIDE CODE
+  /** SERVER IMPLEMENTATION */
   /**
    * Constants representing the method presented in the API
    */
@@ -99,18 +77,14 @@ public class ReadersWritersCSPKeY {
   private boolean propEffectiveFairSelect;
   private boolean propSafeSelection;
   
-  /*@ requires ch_beforeWrite +
-    @          ch_beforeRead +
-    @          ch_afterWrite +
-    @          ch_afterRead > 0;
-    @*/
-  /*@ requires ch_beforeWrite +
-    @          ch_beforeRead +
-    @          ch_afterWrite +
-    @          ch_afterRead <= 2;
+  /*@ requires chBeforeWrite +
+    @          chBeforeRead +
+    @          chAfterWrite +
+    @          chAfterRead > 0;
     @*/
   //@ assignable wellFormedGuards, wellFormedSyncCond, propEffectiveFairSelect;
   //@ assignable propSafeSelection;
+  //@ assignable writers, readers;
   //@ ensures wellFormedGuards && wellFormedSyncCond;
   //@ ensures propEffectiveFairSelect;
   //@ ensures propSafeSelection;
@@ -123,10 +97,10 @@ public class ReadersWritersCSPKeY {
     
     /** Creating Guards (eligible channels) and its correspondence in syncCond */
     int[] guards = {
-        ch_beforeWrite,
-        ch_beforeRead,
-        ch_afterWrite,
-        ch_afterRead
+        chBeforeWrite,
+        chBeforeRead,
+        chAfterWrite,
+        chAfterRead
       };
     boolean[] syncCond = {
         cpreBeforeWrite(),
@@ -152,7 +126,7 @@ public class ReadersWritersCSPKeY {
                             (!syncCond[AFTER_READ] || true) && 
                             syncCond.length == 4;
    
-     chosenService = fairSelect(syncCond, guards);
+     chosenService = JCSPKeY.fairSelect(syncCond, guards);
      propEffectiveFairSelect &= 
                       chosenService < guards.length && chosenService >= 0 &&
                       guards[chosenService] > 0 &&
