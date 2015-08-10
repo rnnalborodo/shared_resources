@@ -1,7 +1,5 @@
 package es.upm.babel.ccjml.samples.airport.java.key;
 
-import org.junit.internal.runners.statements.RunAfters;
-
 import es.upm.babel.ccjml.samples.csp.JCSPKeY;
 import es.upm.babel.ccjml.samples.csp.list.src.List;
 
