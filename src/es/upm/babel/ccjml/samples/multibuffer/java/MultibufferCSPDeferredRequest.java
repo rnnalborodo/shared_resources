@@ -23,7 +23,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
    *  Channel for receiving external request for each method
    */
   private final Any2OneChannel chPut = Channel.any2one();
-  private final Any2OneChannel getChannel = Channel.any2one();
+  private final Any2OneChannel chGet = Channel.any2one();
 
   /** 
    * List for enqueue all request for each method
@@ -43,22 +43,20 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
 
   @Override
   public void put(Object[] els) {
-    //@assume els.length <= maxData / 2 && invariant();
+    //@ assume els.length <= MAX / 2;
     One2OneChannel innerChannel = Channel.one2one();
     chPut.out().write(new PutRequestCSP(els.length,innerChannel));
     // data to be inserted
     innerChannel.out().write(els);
     innerChannel.in().read();
-    //@ assert data == \old(data).concat(JMLObjectSequence.convertFrom(els)) && invariant();
   }
 
   @Override
   public Object[] get(int n) {
-    //@ assume (n <= maxData / 2) && invariant();
+    //@ assume (n <= MAX / 2);
     One2OneChannel innerChannel = Channel.one2one();
-    getChannel.out().write(new GetRequestCSP(n,innerChannel));
+    chGet.out().write(new GetRequestCSP(n,innerChannel));
     Object[] res = (Object[]) innerChannel.in().read();
-    //@ assert \result.length == n && JMLObjectSequence.convertFrom(\result).concat(data) == \old(data) && invariant();
     return res;
   }
 
@@ -73,7 +71,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
     /* One entry for each method. */
     Guard[] inputs = {
       chPut.in(),
-      getChannel.in()
+      chGet.in()
     };
     Alternative services = new Alternative(inputs);
     int chosenService = 0;
@@ -82,13 +80,13 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
       chosenService = services.fairSelect();
       switch(chosenService){
         case PUT: 
-          ChannelInput inputProducers = chPut.in();
-          producersRequest.add(producersRequest.size(),(PutRequestCSP) inputProducers.read());
+          PutRequestCSP putRequest = (PutRequestCSP) chPut.in().read();
+          producersRequest.add(producersRequest.size(), putRequest);
           break;
   
         case GET:
-          ChannelInput inputConsumers = getChannel.in();
-          consumersRequest.add(consumersRequest.size(),(GetRequestCSP) inputConsumers.read());
+          GetRequestCSP getRequest = (GetRequestCSP) chGet.in().read();
+          consumersRequest.add(consumersRequest.size(),getRequest);
           break;
       }
   
@@ -106,7 +104,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
           producersRequest.remove(QUEUE_HEAD);
 
           if (currentProducer.getFst() <= MAX - nData){
-            //@ assume (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
+            //@ assume (els.length <= maxData / 2) && (els.length <= nSlots());
             ChannelInput chIn = currentProducer.getSnd().in();
             Object[] items = (Object[])chIn.read();
             this.innerPut(items);
@@ -123,15 +121,16 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
           consumersRequest.remove(QUEUE_HEAD);
           
           if (currentConsumer.getFst() <= nData){
-            //@ assume (n <= maxData / 2) && invariant() &&  n <= nData();
-            currentConsumer.getSnd().out().write(this.innerGet(currentConsumer.getFst()));
+            //@ assume (n <= maxData / 2) &&  n <= nData();
+            Object[] objs = this.innerGet(currentConsumer.getFst());
+            currentConsumer.getSnd().out().write(objs);
             anyResumed = true;
           } else {
             consumersRequest.add(consumersRequest.size(), currentConsumer);
           }
         }
-        //@ assert (\forall int i; i >= 0 && i <= producersRequest.size(); producersRequest.get(i).fst > max - buffer.length);
-        //@ assert (\forall int i; i >= 0 && i <= consumersRequest.size(); consumersRequest.get(i).fst > buffer.length);
+        //@ assert (\forall int i; i >= 0 && i <= producersRequest.size(); producersRequest.get(i).getFst() > max - buffer.length);
+        //@ assert (\forall int i; i >= 0 && i <= consumersRequest.size(); consumersRequest.get(i).getFst() > buffer.length);
       } while (anyResumed);
     }
   }

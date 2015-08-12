@@ -1,12 +1,15 @@
 package es.upm.babel.ccjml.samples.airport.java;
 
 /** 
+ * Airport Traffic Control Tower with several runways.
+ * 
  * @author Babel Group 
  */
 
 public interface /*@ shared_resource @*/ ControlTower { 
   
   //@ public model instance JMLObjectSequence data;
+  //@ public model instance int MAX;
 
   //@ public instance invariant MAX > 0;
   //@ public instance invariant data.length() <= MAX;

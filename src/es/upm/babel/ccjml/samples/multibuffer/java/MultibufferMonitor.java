@@ -1,7 +1,5 @@
 package es.upm.babel.ccjml.samples.multibuffer.java;
 
-import java.util.logging.Logger;
-
 import es.upm.babel.cclib.Monitor;
 
 /** 
@@ -9,9 +7,7 @@ import es.upm.babel.cclib.Monitor;
  *
  * @author BABEL Group
  */
-public class MultibufferMonitor extends AMultibuffer{
-  
-  private final static Logger log = Logger.getLogger(MultibufferMonitor.class.getName());
+public class MultibufferMonitor extends AMultibuffer {
   
   /** Guarantee mutual exclusion in critic sections */
   private final Monitor mutex;
@@ -19,7 +15,7 @@ public class MultibufferMonitor extends AMultibuffer{
   private final Monitor.Cond[] fullness;
   
   //@ public normal_behaviour
-  //@ ensures \result == maxData > 0 && data.length() <= maxData;
+  //@ ensures \result == maxData > 0 && data.length() <= MAX;
   //@ public model pure boolean invariant();
   public MultibufferMonitor(int m) {
     MAX = m;
@@ -33,6 +29,7 @@ public class MultibufferMonitor extends AMultibuffer{
     for (int i = 1; i < emptiness.length; i++) {
       emptiness[i]= mutex.newCond();
     }
+    
     this.fullness = new Monitor.Cond[m+1];
     for (int i = 1; i < fullness.length; i++) {
       fullness[i]= mutex.newCond();
@@ -41,37 +38,30 @@ public class MultibufferMonitor extends AMultibuffer{
   
   @Override
   public void put(Object[] els) {
-    //@assume els.length <= maxData / 2 && invariant();
+    //@assume els.length <= MAX / 2;
     mutex.enter();
 
     if (els.length > MAX - nData) {
-//      log.info("Sleep Put -> "+ Thread.currentThread().getId());
       emptiness[els.length].await();
-       //@ assume (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
-    }
 
-//    log.info("Awaken Put -> "+ Thread.currentThread().getId());
-    int next = first + nData;
+    }
+    //@ assume (els.length <= MAX / 2) && (els.length <= nSlots());
     for (Object el : els) {
       buffer[(first + nData) % MAX] = el;
       nData++;
     }
-    //@ assert data == \old(data).concat(JMLObjectSequence.convertFrom(els)) && invariant();
-    unblobckingCode();
+    unblockingCode();
     mutex.leave();
   }
 
   @Override
   public Object[] get(int n) {
     mutex.enter();
-    //@ assume (n <= maxData / 2) && invariant();
+    //@ assume (n <= MAX / 2);
     if (nData < n){
-//      log.info("Sleep Get -> "+ Thread.currentThread().getId());
       fullness[n].await();
-      //@ assume (n <= maxData / 2) && invariant() &&  n <= nData();
     }
-    
-//    log.info("Awaken Get -> "+ Thread.currentThread().getId());
+    //@ assume (n <= MAX / 2) && n <= nData();
     Object[] gotData = new Object[n];
     for (int i = 0; i < n; i++) {
       gotData[i] = buffer[first];
@@ -80,8 +70,7 @@ public class MultibufferMonitor extends AMultibuffer{
       first %= MAX; 
       nData--;
     }
-    //@ assert \result.length == n && JMLObjectSequence.convertFrom(\result).concat(data) == \old(data) && invariant();
-    unblobckingCode();
+    unblockingCode();
     mutex.leave();
     return gotData;
   }
@@ -108,16 +97,16 @@ public class MultibufferMonitor extends AMultibuffer{
     @   );
     @*/
   //@ ensures signaled == 0 || signaled == 1;
-  private void unblobckingCode(){
+  private void unblockingCode(){
     signaled = 0;
-    for (int i = 0; i < MAX && signaled == 0; i++){
+    for (int i = 1; i <= MAX && signaled == 0; i++){
       if (fullness[i].waiting() > 0) {
         fullness[i].signal();
         //@ assert cpreGet(i);
         signaled++;
       }
     }
-    for (int i = 0; i < MAX && signaled == 0; i++){
+    for (int i = 1; i <= MAX && signaled == 0; i++){
       if (emptiness[i].waiting() > 0) {
         emptiness[i].signal();
         //@ assert cprePut(i);

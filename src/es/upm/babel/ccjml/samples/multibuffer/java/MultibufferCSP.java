@@ -16,8 +16,8 @@ import org.jcsp.lang.One2OneChannel;
 public class MultibufferCSP extends AMultibuffer implements CSProcess {
     
   /** WRAPPER IMPLEMENTATION */
-  private final Any2OneChannel[] ch_put;
-  private final Any2OneChannel[] ch_get;
+  private final Any2OneChannel[] chPut;
+  private final Any2OneChannel[] chGet;
 
   public MultibufferCSP() {
     this(10);
@@ -25,12 +25,12 @@ public class MultibufferCSP extends AMultibuffer implements CSProcess {
 
   public MultibufferCSP(int l) {
     this.MAX = l;
-    ch_put = new Any2OneChannel[MAX/2];
-    ch_get = new Any2OneChannel[MAX/2];
+    chPut = new Any2OneChannel[MAX/2];
+    chGet = new Any2OneChannel[MAX/2];
 
     for (int n = 0; n < MAX/2; n++) {
-      ch_put[n] = Channel.any2one();
-      ch_get[n] = Channel.any2one();
+      chPut[n] = Channel.any2one();
+      chGet[n] = Channel.any2one();
     }
 
     buffer = new Object[MAX];
@@ -41,14 +41,16 @@ public class MultibufferCSP extends AMultibuffer implements CSProcess {
 
   @Override
   public void put(Object[] objs) {
-    ch_put[objs.length - 1].out().write(objs);
+    //@ assume obj.length <= maxData / 2;
+    chPut[objs.length - 1].out().write(objs);
   }
 
   @Override
   public Object[] get(int n) {
+    //@ assume n <= maxData / 2;
     Object[] result;
     One2OneChannel chResp = Channel.one2one();
-    ch_get[n - 1].out().write(chResp.out());
+    chGet[n - 1].out().write(chResp.out());
     result = (Object[]) chResp.in().read();
     return result;
   }
@@ -75,8 +77,8 @@ public class MultibufferCSP extends AMultibuffer implements CSProcess {
      */
     Guard[] inputs = new Guard[MAX];
     for (int n = 0; n < MAX/2; n++) {
-      inputs[n] = ch_put[n].in();
-      inputs[n + MAX/2] = ch_get[n].in();
+      inputs[n] = chPut[n].in();
+      inputs[n + MAX/2] = chGet[n].in();
     }
 
     final Alternative services = new Alternative(inputs);
@@ -110,12 +112,11 @@ public class MultibufferCSP extends AMultibuffer implements CSProcess {
 
       if (chosenService < MAX/2) {// put
         //@ assume cprePut(choice +1);
-        items = (Object[]) ch_put[chosenService].in().read();
+        items = (Object[]) chPut[chosenService].in().read();
         this.innerPut(items);
-
       } else {// get
         //@ assume cprePut(choice - MAX_DATA + 1);
-        cresp = (ChannelOutput) ch_get[chosenService - MAX/2].in().read();
+        cresp = (ChannelOutput) chGet[chosenService - MAX/2].in().read();
         int lastItem = chosenService - MAX/2 + 1;
         cresp.write(this.innerGet(lastItem));
       }

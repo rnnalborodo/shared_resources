@@ -11,43 +11,7 @@ import org.jcsp.lang.One2OneChannel;
  * 
  * @author Babel Group
  */ 
-public class ControlTowerCSP implements ControlTower, CSProcess {
-
-  //@ public invariant runways.length == monitors.length;
-  private /*@ spec_public @*/boolean runways[];
-
-  //@ ensures \result == (\exists int i; i >= 0 && i < monitor.length; runways[i]);
-  private /*@ pure @*/ boolean cpreBeforeLanding(){
-    return cpreBefore();
-  }
-
-  //@ ensures \result == (\exists int i; i >= 0 && i < monitor.length; runways[i]);
-  private /*@ pure @*/ boolean cpreBeforeTakeOff(){
-    return cpreBefore();
-  }
-
-  //@ ensures \result == (\exists int i; i >= 0 && i < monitor.length; runways[i]);
-  private /*@ pure @*/ boolean cpreBefore(){
-    for (int i = 0; i < runways.length; i++) {
-      if (!runways[i]){
-        return true;
-      }
-    }
-    return false;
-  }
-
-  //@ requires r >=0 && r < runways.length;
-  //@ ensures runways[r]; 
-  private /*@ pure @*/ boolean preBeforeLanding(int r){
-    return runways[r] && r >=0 && r < runways.length;
-  }
-
-  //@ requires r >=0 && r < runways.length;
-  //@ ensures runways[r]; 
-  private /*@ pure @*/ boolean preBeforeTakeOff(int r){
-    return runways[r] && r >=0 && r < runways.length;
-  }
-
+public class ControlTowerCSP extends AControlTower implements CSProcess {
 
   /** WRAPPER IMPLEMENTATION */
   /**
@@ -136,13 +100,13 @@ public class ControlTowerCSP implements ControlTower, CSProcess {
       
       switch(chosenService){
         case BEFORE_LANDING:
-          //@ assert cpreBeforeWrite();
+          //@ assert cpreBeforeLanding();
           innerCh = (One2OneChannel) chBeforeLanding.in().read();
           innerCh.out().write(this.getRunway());
           break;
   
         case BEFORE_TAKEOFF:
-          //@ assert cpreBeforeWrite();
+          //@ assert cpreBeforeTakeOff();
           innerCh = (One2OneChannel) chBeforeTakeOff.in().read();
           innerCh.out().write(this.getRunway());
           break;
