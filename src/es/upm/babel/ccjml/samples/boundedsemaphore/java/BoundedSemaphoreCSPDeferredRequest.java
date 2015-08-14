@@ -111,8 +111,8 @@ public class BoundedSemaphoreCSPDeferredRequest implements BoundedSemaphore, CSP
            vRequest.remove(QUEUE_HEAD);
            
            if (value < bound){
-             //@ assume cpreV() && invariant() && true;
-             this.innerV();
+             //@ assert cpreV();
+             value++;
              currentV.out().write(0);
              anyResumed = true; 
            } else {
@@ -126,25 +126,18 @@ public class BoundedSemaphoreCSPDeferredRequest implements BoundedSemaphore, CSP
            pRequest.remove(QUEUE_HEAD);
            
            if (value > 0){
-             //@ assume cpreP() && invariant() && true;
-             this.innerP();
+             //@ assert cpreP();
+             value --;
              currentP.out().write(0);
              anyResumed = true; 
            } else {
              pRequest.add(pRequest.size(), currentP);
            }
          }
-         //@ assert (\forall int i; i >= 0 && i <= vRequest.size(); !cpreV());
-         //@ assert (\forall int i; i >= 0 && i <= pRequest.size(); !cpreP());
+         //@ assert vRequest.size() > 0 ==> !cpreV();
+         //@ assert pRequest.size() > 0 ==> !cpreP();
        } while (anyResumed);
     }
   }
 
-  private void innerV() {
-    value++;
-  }
-
-  private void innerP(){
-    value--;
-  }
 }

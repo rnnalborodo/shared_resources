@@ -16,7 +16,7 @@ public abstract class AControlTower implements ControlTower {
   }
 
   //@ ensure \result == (\exists int i; i >= 0 && i < monitor.length; runways[i]);
-  protected /*@ pure @*/ boolean cpreBefore(){
+  private /*@ pure @*/ boolean cpreBefore(){
     for (int i = 0; i < runways.length; i++) {
       if (!runways[i]){
         return true;
@@ -27,14 +27,20 @@ public abstract class AControlTower implements ControlTower {
 
   //@ requires r >=0 && r < runways.length;
   //@ ensure runways[r]; 
-  protected /*@ pure @*/ boolean preBeforeLanding(int r){
+  private /*@ pure @*/ boolean preBefore(int r){
     return runways[r] && r >=0 && r < runways.length;
+  }
+  
+  //@ requires r >=0 && r < runways.length;
+  //@ ensure runways[r]; 
+  protected /*@ pure @*/ boolean preBeforeLanding(int r){
+    return preBefore(r);
   }
 
   //@ requires r >=0 && r < runways.length;
   //@ ensure runways[r]; 
   protected /*@ pure @*/ boolean preBeforeTakeOff(int r){
-    return runways[r] && r >=0 && r < runways.length;
+    return preBefore(r);
   }
   
   /*@ public normal_behavior

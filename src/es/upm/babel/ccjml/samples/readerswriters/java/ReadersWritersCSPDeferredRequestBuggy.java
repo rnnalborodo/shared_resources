@@ -16,6 +16,7 @@ import org.jcsp.lang.One2OneChannel;
  * @author BABEL Group
  *
  */
+
 public class ReadersWritersCSPDeferredRequestBuggy extends AReadersWriters implements CSProcess {
 
   /** WRAPPER IMPLEMENTATION */
@@ -177,10 +178,10 @@ public class ReadersWritersCSPDeferredRequestBuggy extends AReadersWriters imple
 //            break;
           }
         }
-        //@ ensures (beforeReadRequest.size() > 0 ==> writers > 0)
-        //@ ensures (afterReadRequest.size() > 0 ==> readers == 0)
-        //@ ensures (beforeWriteRequest.size() > 0 ==> writers + readers > 0)
-        //@ ensures (afterWriteRequest.size() > 0 ==> writers == 0)
+        //@ ensures (beforeReadRequests.size() > 0 ==> !writers == 0)
+        //@ ensures (afterReadRequests.size() > 0 ==> !true)
+        //@ ensures (beforeWriteRequests.size() > 0 ==> !writers + readers == 0)
+        //@ ensures (afterWriteRequests.size() > 0 ==> !true)
       }
     } // end while
   } // end run

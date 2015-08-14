@@ -1,5 +1,11 @@
 package es.upm.babel.ccjml.samples.boundedsemaphore.java;
 
+/** 
+ * Bounded semaphore
+ * 
+ * @author Babel Group 
+ */
+
 public interface /*@ shared_resource @*/ BoundedSemaphore {
   //@ public model instance int value;
   //@ public model instance int bound;

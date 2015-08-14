@@ -33,7 +33,7 @@ public class ControlTowerMonitor extends AControlTower {
     if (!cpreBeforeLanding())
       waitingPlanes.await();
 
-    //@ assume cpreBeforeLanding && true && repOk();
+    //@ assert cpreBeforeLanding && true && repOk();
     int ra = 0;
     for (int i = 0; i < monitors.length; i++) {
       if (!runways[i]){
@@ -57,6 +57,7 @@ public class ControlTowerMonitor extends AControlTower {
     //    if (!true)
     //      waitingPlanes.signal();
 
+    //@ assert true;
     runways[r] = false;
 
     if (waitingPlanes.waiting() > 0)
@@ -75,7 +76,7 @@ public class ControlTowerMonitor extends AControlTower {
     if (!cpreBeforeTakeOff())
       waitingPlanes.await();
 
-    //@ assume cpreBeforeLanding && true && repOk();
+    //@ assert cpreBeforeLanding && true && repOk();
     int ra = 0;
     for (int i = 0; i < monitors.length; i++) {
       if (!runways[i]){
@@ -99,6 +100,7 @@ public class ControlTowerMonitor extends AControlTower {
     //    if (!true)
     //      waitingPlanes.await();
 
+    //@ assert true;
     runways[r] = false;
 
     if (waitingPlanes.waiting() > 0){

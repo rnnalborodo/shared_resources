@@ -11,7 +11,7 @@ import es.upm.babel.ccjml.samples.semaphore.java.pRequest;
 import es.upm.babel.ccjml.samples.semaphore.java.vRequests;
 
 /**
- * Semaphore implementation using JCSP Library with channel expansion.
+ * Semaphore implementation using JCSP Library using channel replication.
  *
  * @author BABEL Group
  */
@@ -85,22 +85,22 @@ public class BoundedSemaphoreCSP implements BoundedSemaphore, CSProcess {
       // refreshing synchronization conditions
       syncCond[V] = this.value < this.bound;
       syncCond[P] = this.value > 0;
-      //@ assume syncCond[0] ==> cpreV();
-      //@ assume syncCond[1] ==> cpreP();
-      //@ assume syncCond.length == 2;
+      //@ assert syncCond[0] ==> cpreV();
+      //@ assert syncCond[1] ==> cpreP();
+      //@ assert syncCond.length == 2;
 
       chosenService = services.fairSelect(syncCond);
 
       switch(chosenService){
         case V: 
-          //@ assert true && cpreV();
+          //@ assert cpreV();
           ChannelInput in = ch_v.in();
           in.read();
           innerV();
           break;
 
         case P:
-          //@ assert true && cpreV();
+          //@ assert cpreV();
           ChannelInput input = ch_p.in();
           input.read();
           innerP();

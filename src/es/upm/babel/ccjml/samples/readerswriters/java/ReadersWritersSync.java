@@ -1,51 +1,54 @@
 package es.upm.babel.ccjml.samples.readerswriters.java;
 
+/** Implementation of ReadersWriters using synchronized methods. 
+ *
+ * @author Babel Group 
+ */
 public class ReadersWritersSync extends AReadersWriters{
-  
+
   public synchronized void beforeWrite() {
+    //@ assume true;
     while (!cpreBeforeWrite()){
-        try { 
-            wait(); 
-        } catch (InterruptedException ex) {}
+      try { 
+        wait(); 
+      } catch (InterruptedException ex) {}
     }
     //@ assert writeAllowed();
     writers++;
   }
-  
+
   public synchronized void afterWrite() { 
-    // assert writerPresent;
+    //@ assume writer == 1;
 //    while (!true) { 
 //      try {
 //        wait();
-//      } catch (InterruptedException ex) {
-//        Logger.getLogger(ReadersWritersSync.class.getName()).log(Level.SEVERE, null, ex);
-//      }
+//      } catch (InterruptedException ex) { }
 //    }
     writers--;
     notifyAll();
   }
 
   public synchronized void beforeRead() {
+    //@ assume true
     while (!cpreBeforeRead()){
-        try { 
-            wait();
-        } catch (InterruptedException ex) {}
+      try { 
+        wait();
+      } catch (InterruptedException ex) {}
     }
-    //@ assert readAllowed();
+    //@ assert cpreBeforeRead();
     ++readers;
   }
 
   public synchronized void afterRead()  { 
-    //@ assert activeReaders > 0; 
+    //@ assume readers > 0; 
 //    while (!true) { 
 //      try {
 //        wait();
-//      } catch (InterruptedException ex) {
-//        Logger.getLogger(ReadersWritersSync.class.getName()).log(Level.SEVERE, null, ex);
-//      }
+//      } catch (InterruptedException ex) {}
 //    }
+    //@ assert true;
     --readers;
     notifyAll();
   }
-  
+
 }

@@ -133,8 +133,8 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
         requestProcessed = false;
         int queueSize = beforeLandingRequests.size();
         for(int i = 0; i < queueSize;i++) {
-          if (cpreBefore()){
-            //@ assume cpreBeforeLanding();
+          if (cpreBeforeLanding()){
+            //@ assert cpreBeforeLanding();
             request = beforeLandingRequests.poll(); 
             request.getChannel().out().write(getRunway());
             requestProcessed = true; 
@@ -145,8 +145,8 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
         
         queueSize = beforeTakeOffRequests.size();
         for(int i = 0; i < queueSize;i++) {
-          if (cpreBefore()){
-            //@ assume cpreBeforeTakeOff();
+          if (cpreBeforeTakeOff()){
+            //@ assert cpreBeforeTakeOff();
             request = beforeTakeOffRequests.poll();
             request.getChannel().out().write(getRunway());
             requestProcessed = true; 
@@ -158,7 +158,7 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
         queueSize = afterLandingRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (true){
-            //@ assume true;
+            //@ assert true;
             request = afterLandingRequests.poll();
             runways[request.getRunway()] = false; 
             request.getChannel().out().write(null);
@@ -171,7 +171,7 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
         queueSize = afterTakeOffRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (true){
-            //@ assume cpreAfterRead();
+            //@ assert true;
             request = afterTakeOffRequests.poll();
             runways[request.getRunway()] = false; 
             request.getChannel().out().write(null);
@@ -180,10 +180,10 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
 //            break;
           }
         }
-        //@ assert (beforeReadRequest.size() > 0 ==> writers > 0)
-        //@ assert (afterReadRequest.size() > 0 ==> readers == 0)
-        //@ assert (beforeWriteRequest.size() > 0 ==> writers + readers > 0)
-        //@ assert (afterWriteRequest.size() > 0 ==> writers == 0)
+        //@ assert (beforeLandingRequests.size() > 0 ==> !cpreBeforeLanding())
+        //@ assert (afterLandingRequests.size() > 0 ==> !true)
+        //@ assert (beforeTakeOffRequests.size() > 0 ==> !cpreBeforeTakeOff())
+        //@ assert (afterLandingRequests.size() > 0 ==> !true)
       }
     } // end while
   } // end run

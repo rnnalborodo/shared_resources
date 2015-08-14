@@ -1,6 +1,7 @@
 package es.upm.babel.ccjml.samples.readerswriters.java;
 
 public interface /* shared_resource @*/ ReadersWriters {
+  
   //@ public model instance int readers;
   //@ public model instance int writers;
   
@@ -15,7 +16,7 @@ public interface /* shared_resource @*/ ReadersWriters {
   /*@ public normal_behaviour
     @   cond_sync writers + readers == 0;
     @   assignable writers;
-    @   ensures writers > 0;
+    @   ensures writers == 1;
     @*/
   public void beforeWrite();
   

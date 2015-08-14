@@ -13,7 +13,7 @@ public class ReadersWritersMonitorWritersPriority extends ReadersWritersMonitor{
   
   @Override
   protected void unblockingCode00() {
-    // priorizing writers
+    // prioritizing writers
     if (writersCond.waiting() > 0) {
       writersCond.signal();
     } else if (readersCond.waiting() > 0) { 
@@ -24,7 +24,7 @@ public class ReadersWritersMonitorWritersPriority extends ReadersWritersMonitor{
   
   @Override
   protected void unblockingCodeN0() {
-    // priorizing writers
+    // prioritizing writers
     if (writersCond.waiting() > 0)
       return;
     else 

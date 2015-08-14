@@ -1,7 +1,10 @@
 package es.upm.babel.ccjml.samples.boundedsemaphore.java;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+/** 
+ * Bounded semaphore implementation using syncrhonized methods.
+ * 
+ * @author Babel Group 
+ */
 
 public class BoundedSemaphoreSync implements BoundedSemaphore{
   private int value = 0;
@@ -13,24 +16,25 @@ public class BoundedSemaphoreSync implements BoundedSemaphore{
 
   @Override
   public synchronized void v(){
+    //@ assume true;
     while(this.value == upperBound) 
       try {
         wait();
-      } catch (InterruptedException ex) {
-        Logger.getLogger(BoundedSemaphoreSync.class.getName()).log(Level.SEVERE, null, ex);
-      }
+      } catch (InterruptedException ex) {}
+    //@ assert value == 0;
     this.value++;
+    
     this.notify();
   }
 
   @Override
   public synchronized void p(){
+    //@ assume true;
     while(this.value == 0) 
       try {
         wait();
-      } catch (InterruptedException ex) {
-        Logger.getLogger(BoundedSemaphoreSync.class.getName()).log(Level.SEVERE, null, ex);
-      }
+      } catch (InterruptedException ex) {}
+    //@ assert value > 0;
     this.value--;
     this.notify();
   }

@@ -1,7 +1,7 @@
 package es.upm.babel.ccjml.samples.airport.java;
 
 
-/** Implementation of ControlTower using synchronization methods 
+/** Implementation of ControlTower using synchronized methods 
  *
  * @author Babel Group 
  */
@@ -22,7 +22,7 @@ public class ControlTowerSync extends AControlTower{
         e.printStackTrace();
       }
 
-    //@ assume cpreBeforeLanding && true && repOk();
+    //@ assert cpreBeforeLanding && true && repOk();
     int ra = 0;
     for (int i = 0; i < runways.length; i++) {
       if (!runways[i]){
@@ -43,7 +43,7 @@ public class ControlTowerSync extends AControlTower{
     //@ assume preAfterLanding(r);
 //    while (!true)
 //      this.wait();
-    //@ assume true;
+    //@ assert true;
     runways[r] = false;
 
     notifyAll();
@@ -59,7 +59,7 @@ public class ControlTowerSync extends AControlTower{
         e.printStackTrace();
       }
 
-    //@ assume cpreBeforeTakeOff() && true && repOk();
+    //@ assert cpreBeforeTakeOff() && true && repOk();
     int ra = 0;
     for (int i = 0; i < runways.length; i++) {
       if (!runways[i]){
@@ -80,7 +80,7 @@ public class ControlTowerSync extends AControlTower{
     //@ assume preAfterTakeOff(r);
 //    while (!true)
 //      this.wait();
-
+    //@ assert true;
     runways[r] = false;
 
     notifyAll();

@@ -5,7 +5,7 @@ public class ReadersWritersMonitorReadersPriority extends ReadersWritersMonitor{
 
   @Override
   protected void unblockingCode00() {
-    // priorizing readers
+    // prioritizing readers
     if (readersCond.waiting() > 0) {
       readersCond.signal();
     } else if (writersCond.waiting() > 0) { 
@@ -16,7 +16,7 @@ public class ReadersWritersMonitorReadersPriority extends ReadersWritersMonitor{
   
   @Override
   protected void unblockingCodeN0() {
-    // priorizing readers
+    // prioritizing readers
     if (readersCond.waiting() > 0) {
       readersCond.signal();
     } 

@@ -16,10 +16,10 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
   /**
    *  Channel for receiving external request for each method
    */
-  private final Any2OneChannel ch_beforeWrite = Channel.any2one();
-  private final Any2OneChannel ch_beforeRead  = Channel.any2one();
-  private final Any2OneChannel ch_afterWrite  = Channel.any2one();
-  private final Any2OneChannel ch_afterRead   = Channel.any2one();
+  private final Any2OneChannel chBeforeWrite = Channel.any2one();
+  private final Any2OneChannel chBeforeRead  = Channel.any2one();
+  private final Any2OneChannel chAfterWrite  = Channel.any2one();
+  private final Any2OneChannel chAfterRead   = Channel.any2one();
 
   /** 
    * List for enqueue all request for each method
@@ -36,7 +36,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
   public void beforeWrite() {
     //@ assume true
     One2OneChannel innerChannel = Channel.one2one();
-    ch_beforeWrite.out().write( new Request<Object>(innerChannel,null));
+    chBeforeWrite.out().write( new Request<Object>(innerChannel,null));
     innerChannel.in().read();
   }
 
@@ -44,7 +44,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
   public void afterWrite() {
     //@ assume true
     One2OneChannel innerChannel = Channel.one2one();
-    ch_afterWrite.out().write( new Request<Object>(innerChannel,null));
+    chAfterWrite.out().write( new Request<Object>(innerChannel,null));
     innerChannel.in().read();
   }
 
@@ -52,7 +52,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
   public void beforeRead() {
     //@ assume true
     One2OneChannel innerChannel = Channel.one2one();
-    ch_beforeRead.out().write( new Request<Object>(innerChannel,null));
+    chBeforeRead.out().write( new Request<Object>(innerChannel,null));
     innerChannel.in().read();
   }
 
@@ -60,7 +60,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
   public void afterRead() {
     //@ assume true
     One2OneChannel innerChannel = Channel.one2one();
-    ch_afterRead.out().write( new Request<Object>(innerChannel,null));
+    chAfterRead.out().write( new Request<Object>(innerChannel,null));
     innerChannel.in().read();
   }
 
@@ -79,10 +79,10 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
     
     /** One entry for each method */
     Guard[] guards = {
-      ch_beforeWrite.in(),
-      ch_beforeRead.in(),
-      ch_afterWrite.in(),
-      ch_afterRead.in()
+      chBeforeWrite.in(),
+      chBeforeRead.in(),
+      chAfterWrite.in(),
+      chAfterRead.in()
     };
     
     final Alternative services = new Alternative(guards);
@@ -96,22 +96,22 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
   
         case BEFORE_WRITE:
           //@ assert true;
-          beforeWriteRequests.offer((Request<Object>)ch_beforeWrite.in().read());
+          beforeWriteRequests.offer((Request<Object>)chBeforeWrite.in().read());
           break;
           
         case BEFORE_READ:
           //@ assert true;
-          beforeReadRequests.offer((Request<Object>)ch_beforeRead.in().read());
+          beforeReadRequests.offer((Request<Object>)chBeforeRead.in().read());
           break;
  
         case AFTER_WRITE: 
-          //@ assert true;
-          afterWriteRequests.offer((Request<Object>)ch_afterWrite.in().read());
+          //@ assert writers == 1;
+          afterWriteRequests.offer((Request<Object>)chAfterWrite.in().read());
           break;
 
         case AFTER_READ:
-          //@ assert true;
-          afterReadRequests.offer((Request<Object>)ch_afterRead.in().read());
+          //@ assert readers > 0;
+          afterReadRequests.offer((Request<Object>)chAfterRead.in().read());
       }
       
       Request<Object> request;
@@ -123,7 +123,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
         int queueSize = beforeWriteRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (writers + readers == 0){
-            //@ assume cpreBeforeWrite();
+            //@ assert cpreBeforeWrite();
             request = beforeWriteRequests.poll();
             this.innerBeforeWrite(); 
             request.getChannel().out().write(null);
@@ -136,7 +136,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
         queueSize = beforeReadRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (writers == 0){
-            //@ assume cprebeforeRead();
+            //@ assert cprebeforeRead();
             request = beforeReadRequests.poll();
             this.innerBeforeRead(); 
             request.getChannel().out().write(null);
@@ -149,7 +149,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
         queueSize = afterWriteRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (true){
-            //@ assume cpreAfterWrite();
+            //@ assert cpreAfterWrite();
             request =afterWriteRequests.poll();
             this.innerAfterWrite(); 
             request.getChannel().out().write(null);
@@ -162,7 +162,7 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
         queueSize = afterReadRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (true){
-            //@ assume cpreAfterRead();
+            //@ assert cpreAfterRead();
             request =afterReadRequests.poll();
             this.innerAfterRead(); 
             request.getChannel().out().write(null);
@@ -171,10 +171,10 @@ public class ReadersWritersCSPDeferredRequest extends AReadersWriters implements
 //            break;
           }
         }
-        //@ ensures (beforeReadRequest.size() > 0 ==> writers > 0)
-        //@ ensures (afterReadRequest.size() > 0 ==> readers == 0)
-        //@ ensures (beforeWriteRequest.size() > 0 ==> writers + readers > 0)
-        //@ ensures (afterWriteRequest.size() > 0 ==> writers == 0)
+        //@ ensures (beforeReadRequests.size() > 0 ==> !writers == 0)
+        //@ ensures (afterReadRequests.size() > 0 ==> !true)
+        //@ ensures (beforeWriteRequests.size() > 0 ==> !writers + readers == 0)
+        //@ ensures (afterWriteRequests.size() > 0 ==> !true)
       }
     } // end while
   } // end run

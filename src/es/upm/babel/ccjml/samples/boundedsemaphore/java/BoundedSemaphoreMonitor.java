@@ -38,11 +38,11 @@ public class BoundedSemaphoreMonitor implements BoundedSemaphore {
   @Override
   public void v() {
     mutex.enter(); 
-    //@ assume repOK() && true; //pre=true
+    //@ assume true; //pre=true
     if (!cpreV()) 
       v.await();
     
-    //@assume true && cpreV() && repOk();    
+    //@ assert cpreV();    
     value ++;
     
     if (p.waiting() >0) {
@@ -56,11 +56,11 @@ public class BoundedSemaphoreMonitor implements BoundedSemaphore {
   @Override
   public void p(){
     mutex.enter();
-    //@ assume repOK() && true; //pre=true
+    //@ assume true; //pre=true
     if (!cpreP()) 
       p.await();
     
-    //@assume true && cpreP() && repOk();
+    //@ assert cpreP();
     value --;
     
     if (v.waiting() >0) {

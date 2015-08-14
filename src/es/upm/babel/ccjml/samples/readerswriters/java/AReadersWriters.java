@@ -14,9 +14,8 @@ public abstract class AReadersWriters implements ReadersWriters {
   //@ public normal_behaviour
   //@   ensures \result == writers == 0;
   protected boolean /*@ pure @*/cpreBeforeRead() {
-    return writers ==0;
+    return writers == 0;
   }
-  
   
   @Override
   public String toString(){
