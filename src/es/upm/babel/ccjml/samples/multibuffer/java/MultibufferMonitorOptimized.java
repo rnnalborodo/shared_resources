@@ -45,12 +45,10 @@ public class MultibufferMonitorOptimized extends AMultibuffer{
     mutex.enter();
 
     if (els.length > MAX - nData) {
-//      log.info("Sleep Put -> "+ Thread.currentThread().getId());
       emptiness[els.length].await();
-       //@ assume (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
     }
-
-//    log.info("Awaken Put -> "+ Thread.currentThread().getId());
+    //@ assert (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
+    
     int next = first + nData;
     for (Object el : els) {
       buffer[(first + nData) % MAX] = el;
@@ -66,12 +64,10 @@ public class MultibufferMonitorOptimized extends AMultibuffer{
     mutex.enter();
     //@ assume (n <= maxData / 2) && invariant();
     if (nData < n){
-//      log.info("Sleep Get -> "+ Thread.currentThread().getId());
       fullness[n].await();
-      //@ assume (n <= maxData / 2) && invariant() &&  n <= nData();
     }
+    //@ assert (n <= maxData / 2) && invariant() &&  n <= nData();
     
-//    log.info("Awaken Get -> "+ Thread.currentThread().getId());
     Object[] gotData = new Object[n];
     for (int i = 0; i < n; i++) {
       gotData[i] = buffer[first];

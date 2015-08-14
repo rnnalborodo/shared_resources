@@ -98,7 +98,7 @@ public class MultibufferCSP extends AMultibuffer implements CSProcess {
         syncCond[n] = cprePut(n+1);
         syncCond[n + MAX/2] = cpreGet(n+1);
       }  
-      /*@ assume (\forall int i; i > = 0 i < syncCond.length; 
+      /*@ assert (\forall int i; i > = 0 i < syncCond.length; 
         @           ( i < MAX_DATA && syncCond[i] ==> cprePut(i+1))
         @         ||
         @           ( i >= MAX_DATA && syncCond[i] ==> cpreGet(i+1))
@@ -111,11 +111,11 @@ public class MultibufferCSP extends AMultibuffer implements CSProcess {
       //@ assume syncCond[chosenService];
 
       if (chosenService < MAX/2) {// put
-        //@ assume cprePut(choice +1);
+        //@ assert cprePut(choice +1);
         items = (Object[]) chPut[chosenService].in().read();
         this.innerPut(items);
       } else {// get
-        //@ assume cprePut(choice - MAX_DATA + 1);
+        //@ assert cprePut(choice - MAX_DATA + 1);
         cresp = (ChannelOutput) chGet[chosenService - MAX/2].in().read();
         int lastItem = chosenService - MAX/2 + 1;
         cresp.write(this.innerGet(lastItem));

@@ -43,9 +43,9 @@ public class MultibufferMonitor extends AMultibuffer {
 
     if (els.length > MAX - nData) {
       emptiness[els.length].await();
-
     }
-    //@ assume (els.length <= MAX / 2) && (els.length <= nSlots());
+    
+    //@ assert (els.length <= MAX / 2) && (els.length <= nSlots());
     for (Object el : els) {
       buffer[(first + nData) % MAX] = el;
       nData++;
@@ -61,7 +61,8 @@ public class MultibufferMonitor extends AMultibuffer {
     if (nData < n){
       fullness[n].await();
     }
-    //@ assume (n <= MAX / 2) && n <= nData();
+    
+    //@ assert (n <= MAX / 2) && n <= nData();
     Object[] gotData = new Object[n];
     for (int i = 0; i < n; i++) {
       gotData[i] = buffer[first];

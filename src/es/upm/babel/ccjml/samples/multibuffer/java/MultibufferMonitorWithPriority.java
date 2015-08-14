@@ -47,11 +47,10 @@ public class MultibufferMonitorWithPriority extends AMultibuffer {
     
     if (!cprePut(els.length)) {
       Cond cond = mutex.newCond();
-      waiting.add(new Tuple(cond, new Tuple(PUT, els.length)));
+      waiting.add(new Tuple<Cond, Tuple<Integer, Integer>>(cond, new Tuple<Integer, Integer>(PUT, els.length)));
       cond.await();
-       //@ assume (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
     }
-
+    //@ assert (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
     for (Object el : els) {
       buffer[(first + nData) % MAX] = el;
       nData++;
@@ -68,11 +67,11 @@ public class MultibufferMonitorWithPriority extends AMultibuffer {
     //@ assume (n <= maxData / 2) && invariant();
     if (!cpreGet(n)){
       Cond cond = mutex.newCond();
-      waiting.add(new Tuple(cond, new Tuple(GET, n)));
+      waiting.add(new Tuple<Cond, Tuple<Integer, Integer>>(cond, new Tuple<Integer, Integer>(GET, n)));
       cond.await();
-      //@ assume (n <= maxData / 2) && invariant() &&  n <= nData();
     }
     
+    //@ assert (n <= maxData / 2) && invariant() &&  n <= nData();
     Object[] gotData = new Object[n];
     for (int i = 0; i < n; i++) {
       gotData[i] = buffer[first];

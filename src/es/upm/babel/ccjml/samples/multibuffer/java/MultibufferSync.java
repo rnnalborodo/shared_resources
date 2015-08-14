@@ -44,7 +44,7 @@ public class MultibufferSync implements Multibuffer {
         wait();
       } catch (Exception e) { }
     }
-    //@ assume (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
+    //@ assert (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
     for (int i = 0; i < els.length; i++) {
       buffer[(first + nData) % max] = els[i];
       nData++;
@@ -60,7 +60,7 @@ public class MultibufferSync implements Multibuffer {
         wait();
       } catch (Exception e) {}
     } 
-    //@ assume (n <= maxData / 2) && invariant() &&  n <= nData();
+    //@ assert (n <= maxData / 2) && invariant() &&  n <= nData();
     Object[] gotData = new Object[n];
     for (int i = 0; i < n; i++) {
       gotData[i] = buffer[first];

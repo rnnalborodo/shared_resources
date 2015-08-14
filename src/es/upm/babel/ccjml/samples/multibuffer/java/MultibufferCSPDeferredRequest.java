@@ -104,7 +104,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
           producersRequest.remove(QUEUE_HEAD);
 
           if (currentProducer.getFst() <= MAX - nData){
-            //@ assume (els.length <= maxData / 2) && (els.length <= nSlots());
+            //@ assert (els.length <= maxData / 2) && (els.length <= nSlots());
             ChannelInput chIn = currentProducer.getSnd().in();
             Object[] items = (Object[])chIn.read();
             this.innerPut(items);
@@ -121,7 +121,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
           consumersRequest.remove(QUEUE_HEAD);
           
           if (currentConsumer.getFst() <= nData){
-            //@ assume (n <= maxData / 2) &&  n <= nData();
+            //@ assert (n <= maxData / 2) &&  n <= nData();
             Object[] objs = this.innerGet(currentConsumer.getFst());
             currentConsumer.getSnd().out().write(objs);
             anyResumed = true;

@@ -46,9 +46,9 @@ public class MultibufferMonitorPriorityBuggyDeadlock extends AMultibuffer {
     if (els.length > MAX - nData) {
       awaitingParametersPut.add(awaitingParametersPut.size(), els.length);
       awaitingPut.await();
-       //@ assume (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
     }
-
+    
+    //@ assert (els.length <= maxData / 2) && invariant() && (els.length <= nSlots());
     int next = first + nData;
     for (Object el : els) {
       buffer[(first + nData) % MAX] = el;
@@ -66,8 +66,9 @@ public class MultibufferMonitorPriorityBuggyDeadlock extends AMultibuffer {
     if (nData < n){
       awaitingParametersGet.add(awaitingParametersPut.size(), n);
       awaitingGet.await();
-      //@ assume (n <= maxData / 2) && invariant() &&  n <= nData();
     }
+    
+    //@ assert (n <= maxData / 2) && invariant() &&  n <= nData();
     Object[] gotData = new Object[n];
     for (int i = 0; i < n; i++) {
       gotData[i] = buffer[first];
@@ -76,6 +77,7 @@ public class MultibufferMonitorPriorityBuggyDeadlock extends AMultibuffer {
       first %= MAX; 
       nData--;
     }
+    
     //@ assert \result.length == n && JMLObjectSequence.convertFrom(\result).concat(data) == \old(data) && invariant();
     unblobckingCode();
     mutex.leave();
