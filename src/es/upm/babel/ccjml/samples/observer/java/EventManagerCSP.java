@@ -24,10 +24,10 @@ public class EventManagerCSP extends AEventManager implements CSProcess {
   /**
    *  Channel for receiving external request for each method
    */
-  Any2OneChannel fireEventChannel;
-  Any2OneChannel subscribeChannel;
-  Any2OneChannel unsubscribeChannel;
-  One2OneChannel[] listenChannel;
+  Any2OneChannel chFireEvent;
+  Any2OneChannel chSubscribe;
+  Any2OneChannel chUunsubscribe;
+  Any2OneChannel[] chListen;
   
   public EventManagerCSP(int maxEvents, int maxProcesses){
     subscribed = new boolean [maxEvents][maxProcesses];
@@ -35,39 +35,37 @@ public class EventManagerCSP extends AEventManager implements CSProcess {
 
     N_PIDS = maxProcesses;
     
-    fireEventChannel   = Channel.any2one();
-  	subscribeChannel   = Channel.any2one();
-  	unsubscribeChannel = Channel.any2one();
+    chFireEvent   = Channel.any2one();
+  	chSubscribe   = Channel.any2one();
+  	chUunsubscribe = Channel.any2one();
   	
-  	listenChannel  = new One2OneChannel[N_PIDS];
-  	for (int pid = 0; pid < N_PIDS; pid++) {
-  	    listenChannel[pid] = Channel.one2one();
-  	}
+  	chListen  = Channel.any2oneArray(N_PIDS);
+
   }
   
   @Override
   public void fireEvent(int eid) {
     //@ assume preFireEvent(eid) && repOk();
-    fireEventChannel.out().write(eid);
+    chFireEvent.out().write(eid);
   }
 
   @Override
   public void subscribe(int pid, int eid) {
     //@ assume preSubscribe(pid,eid) && repOk();
-    subscribeChannel.out().write(new Tuple<Integer,Integer>(pid, eid));
+    chSubscribe.out().write(new Tuple<Integer,Integer>(pid, eid));
   }
 
   @Override
   public void unsubscribe(int pid, int eid) {
     //@ assume preUnsuscribe(pid, eid) && repOk();
-    unsubscribeChannel.out().write(new Tuple<Integer,Integer>(pid, eid));
+    chUunsubscribe.out().write(new Tuple<Integer,Integer>(pid, eid));
   }
 
   @Override
   public int listen(int pid) {
     //@ assume preListen(pid) && repOk();
     One2OneChannel innerChannel = Channel.one2one();
-    listenChannel[pid].out().write(innerChannel);
+    chListen[pid].out().write(innerChannel);
     // data to be returned
     return ((Integer) innerChannel.in().read());
   }
@@ -91,11 +89,11 @@ public class EventManagerCSP extends AEventManager implements CSProcess {
      *  selective reception,i.e., #channels = N_PID + 3  
      */
     final Guard[] guards = new AltingChannelInput[N_PIDS + 3];
-    guards[FIRE_EVENT]  = fireEventChannel.in();
-    guards[SUBSCRIBE]   = subscribeChannel.in();
-    guards[UNSUBSCRIBE] = unsubscribeChannel.in();
+    guards[FIRE_EVENT]  = chFireEvent.in();
+    guards[SUBSCRIBE]   = chSubscribe.in();
+    guards[UNSUBSCRIBE] = chUunsubscribe.in();
     for (int pid = 0; pid < N_PIDS; pid++) {
-        guards[pid+3] = listenChannel[pid].in();
+        guards[pid+3] = chListen[pid].in();
     }
     
     /**
@@ -103,10 +101,6 @@ public class EventManagerCSP extends AEventManager implements CSProcess {
      *  Should be refreshed every iteration.
      */
     boolean[] sincCond = new boolean[N_PIDS + 3];
-    sincCond[FIRE_EVENT] = sincCond[SUBSCRIBE] = sincCond[UNSUBSCRIBE] = true;
-    for (int i = 3; i < sincCond.length; i++) {
-      sincCond[i] = false;
-    }
 
     final Alternative services = new Alternative(guards);
     int chosenService;
@@ -114,14 +108,11 @@ public class EventManagerCSP extends AEventManager implements CSProcess {
      *  Server loop
      */
     while (true) {
-      
+      sincCond[FIRE_EVENT] = sincCond[SUBSCRIBE] = sincCond[UNSUBSCRIBE] = true;
       for (int i = 3; i < sincCond.length; i++) {
         sincCond[i] = cpreListen(i-3);
       }
-      sincCond[0] = true;
-      sincCond[1] = true;
-      sincCond[2] = true;
-      /*@ assume (\forall int i; i >= 3 & i < syncCond.length; 
+      /*@ assert (\forall int i; i >= 3 & i < syncCond.length; 
         @           syncCond[i] ==> cpreListen(i-3)) &&
         @        (\forall int i; i >= 0 & i < 3; 
         @           syncCond[i] ==> true)
@@ -136,27 +127,27 @@ public class EventManagerCSP extends AEventManager implements CSProcess {
       
       switch (chosenService) {
         case FIRE_EVENT:
-          //@ assume true;
-          int eid = (Integer)fireEventChannel.in().read();
+          //@ assert true;
+          int eid = (Integer)chFireEvent.in().read();
           innerFireEvent(eid);
           break;
 
         case SUBSCRIBE:
-        //@ assume true;
-          request = (Tuple<Integer,Integer>)subscribeChannel.in().read();
+          //@ assert true;
+          request = (Tuple<Integer,Integer>)chSubscribe.in().read();
           innerSubscribe(request.getFst(), request.getSnd());
           break;
           
         case UNSUBSCRIBE:
-          //@ assume true;
-          request = (Tuple<Integer, Integer>)unsubscribeChannel.in().read();
+          //@ assert true;
+          request = (Tuple<Integer, Integer>)chUunsubscribe.in().read();
           innerUnsubscribe(request.getFst(), request.getSnd());
           break;
           
         // Listen invocation processing
         default:
-          //@ assume cpreListen(chosenService -3);
-          One2OneChannel channel = ((One2OneChannel)listenChannel[chosenService-3].in().read());
+          //@ assert cpreListen(chosenService -3);
+          One2OneChannel channel = ((One2OneChannel)chListen[chosenService-3].in().read());
           eid = innerListen(chosenService-3);
           channel.out().write(eid);
           break;

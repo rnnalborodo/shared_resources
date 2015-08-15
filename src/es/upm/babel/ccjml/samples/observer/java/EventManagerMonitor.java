@@ -28,7 +28,7 @@ public class EventManagerMonitor extends AEventManager {
     mutex.enter();
     //@ assume preFireEvent(eid) && repOk(); 
     //if (!true){}
-    //@ assume preFireEvent(eid) && cpreFireEvent(eid) && repOk();
+    //@ assert preFireEvent(eid) && cpreFireEvent(eid) && repOk();
     System.arraycopy(subscribed[eid], 0, unlistenedEvents[eid], 0, subscribed[eid].length);
     
     unblockBasedOnEvent(eid);
@@ -40,7 +40,7 @@ public class EventManagerMonitor extends AEventManager {
     mutex.enter();
     //@ assume preSubscribe(pid, eid) && repOk(); 
     //if (!true){}
-    //@ assume preSubscribe(pid, eid) && cpreSubscribe(eid) && repOk();
+    //@ assert preSubscribe(pid, eid) && cpreSubscribe(eid) && repOk();
     subscribed[eid][pid]=true;
     
     mutex.leave();
@@ -51,7 +51,7 @@ public class EventManagerMonitor extends AEventManager {
     mutex.enter();
     //@ assume preUnsubscribe(pid, eid) && repOk(); 
     //if (!true){}
-    //@ assume preUnsubscribe(pid, eid) && cpreUnsubscribe(eid) && repOk();
+    //@ assert preUnsubscribe(pid, eid) && cpreUnsubscribe(eid) && repOk();
     subscribed[eid][pid]=false;
     
     mutex.leave();
@@ -64,7 +64,7 @@ public class EventManagerMonitor extends AEventManager {
     if (!cpreListen(pid)){
       processWaitingForEvent[pid].await();
     }
-    //@ assume preListen(pid) && cpreListen(pid) && repOk();
+    //@ assert preListen(pid) && cpreListen(pid) && repOk();
     
     int listened = 0;
     for (int eid = 0; eid < unlistenedEvents.length && listened == 0 ; eid++) {

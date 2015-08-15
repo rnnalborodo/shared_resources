@@ -24,18 +24,18 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
   /**
    *  Channel for receiving external request for each method
    */
-  Any2OneChannel fireEventChannel   = Channel.any2one();
-  Any2OneChannel subscribeChannel   = Channel.any2one();
-  Any2OneChannel unsubscribeChannel = Channel.any2one();
-  Any2OneChannel listenChannel      = Channel.any2one();
+  Any2OneChannel chFireEvent   = Channel.any2one();
+  Any2OneChannel chSubscribe   = Channel.any2one();
+  Any2OneChannel chUnsubscribe = Channel.any2one();
+  Any2OneChannel chListen      = Channel.any2one();
   
   /** 
    * List for enqueue all request for each method
    */
-  private final Queue<Request<Integer>> fireEventRequests = new LinkedList<>();
-  private final Queue<Request<int[]>> subscribeRequests = new LinkedList<>();
-  private final Queue<Request<int[]>> unsubscribeRequests = new LinkedList<>();
-  private final Queue<Request<Integer>> listenRequests = new LinkedList<>();
+  private final Queue<Request<Integer>> fireEventRequests   = new LinkedList<>();
+  private final Queue<Request<int[]>>   subscribeRequests   = new LinkedList<>();
+  private final Queue<Request<int[]>>   unsubscribeRequests = new LinkedList<>();
+  private final Queue<Request<Integer>> listenRequests      = new LinkedList<>();
   
   public EventManagerCSPDeferredRequest(int maxEvents, int maxProcesses){
     subscribed = new boolean [maxEvents][maxProcesses];
@@ -47,7 +47,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
   public void fireEvent(int eid) {
     //@ assume preFireEvent(eid) && repOk();
     One2OneChannel innerChannel = Channel.one2one();
-    fireEventChannel.out().write(
+    chFireEvent.out().write(
                           new Request<Integer>(innerChannel,eid));
     innerChannel.in().read();
   }
@@ -56,7 +56,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
   public void subscribe(int pid, int eid) {
     //@ assume preSubscribe(pid,eid) && repOk();
     One2OneChannel innerChannel = Channel.one2one();
-    subscribeChannel.out().write(
+    chSubscribe.out().write(
                           new Request<int[]>(innerChannel,new int[]{pid, eid}));
     innerChannel.in().read();
   }
@@ -65,7 +65,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
   public void unsubscribe(int pid, int eid) {
     //@ assume preUnsuscribe(pid, eid) && repOk();
     One2OneChannel innerChannel = Channel.one2one();
-    unsubscribeChannel.out().write(
+    chUnsubscribe.out().write(
                           new Request<int[]>(innerChannel,new int[]{pid, eid}));
     innerChannel.in().read();
   }
@@ -74,7 +74,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
   public int listen(int pid) {
     //@ assume preListen(pid) && repOk();
     One2OneChannel innerChannel = Channel.one2one();
-    listenChannel.out().write(
+    chListen.out().write(
                           new Request<Integer>(innerChannel,pid));
     // data to be returned
     return (Integer)innerChannel.in().read();
@@ -91,10 +91,10 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
   public void run() {
     /* One entry for each method. */
     final Guard[] guards = new AltingChannelInput[4];
-    guards[FIRE_EVENT]  = fireEventChannel.in();
-    guards[SUBSCRIBE]   = subscribeChannel.in();
-    guards[UNSUBSCRIBE] = unsubscribeChannel.in();
-    guards[LISTEN]      = listenChannel.in();
+    guards[FIRE_EVENT]  = chFireEvent.in();
+    guards[SUBSCRIBE]   = chSubscribe.in();
+    guards[UNSUBSCRIBE] = chUnsubscribe.in();
+    guards[LISTEN]      = chListen.in();
 
     final Alternative services = new Alternative(guards);
     int chosenService;
@@ -105,19 +105,19 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
       
       switch (chosenService) {
         case FIRE_EVENT:
-          fireEventRequests.offer((Request<Integer>)fireEventChannel.in().read());
+          fireEventRequests.offer((Request<Integer>)chFireEvent.in().read());
           break;
 
         case SUBSCRIBE:
-          subscribeRequests.offer((Request<int[]>)subscribeChannel.in().read());
+          subscribeRequests.offer((Request<int[]>)chSubscribe.in().read());
           break;
           
         case UNSUBSCRIBE:
-          unsubscribeRequests.offer((Request<int[]>)unsubscribeChannel.in().read());
+          unsubscribeRequests.offer((Request<int[]>)chUnsubscribe.in().read());
           break;
           
         case LISTEN:
-          listenRequests.offer((Request<Integer>)listenChannel.in().read());
+          listenRequests.offer((Request<Integer>)chListen.in().read());
           break;
       }
       
@@ -135,7 +135,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
         int queueSize = fireEventRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (true){
-            //@ assume true;
+            //@ assert true;
             request = fireEventRequests.poll();
             this.innerFireEvent(request.getFootprint()); 
             request.getChannel().out().write("");
@@ -149,7 +149,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
         queueSize = subscribeRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (true){
-            //@ assume true;
+            //@ assert true;
             requestPID = subscribeRequests.poll();
             this.innerSubscribe(requestPID.getFootprint()[0], 
                                 requestPID.getFootprint()[1]); 
@@ -164,7 +164,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
         queueSize = unsubscribeRequests.size();
         for(int i = 0; i < queueSize;i++) {
           if (true){
-            //@ assume true;
+            //@ asser true;
             requestPID = unsubscribeRequests.poll();
             this.innerUnsubscribe(requestPID.getFootprint()[0], 
                                   requestPID.getFootprint()[1]); 
@@ -183,7 +183,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
         for(int i = 0; i < queueSize;i++) {
           request = listenRequests.poll();
           if (cpreListen(request.getFootprint())){
-            //@ assume cpreAfterRead();
+            //@ assert cpreAfterRead();
             int result = this.innerListen(request.getFootprint()); 
             request.getChannel().out().write(result);
             requestProcessed = true; 
@@ -191,9 +191,7 @@ public class EventManagerCSPDeferredRequest extends AEventManager implements CSP
             // this request cannot be processed right now
             listenRequests.offer(request);
           }
-        }
-        
-        //@ ensures $there$ $is$ $no$ $stored$ $thread$ $in$ $any$ $request$ $list$ $which$ $its$ $synchronization$ $condition$ $holds$
+        }        
       }
     } // end while
   } // end run

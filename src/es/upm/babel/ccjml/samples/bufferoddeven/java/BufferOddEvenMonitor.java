@@ -72,7 +72,7 @@ public class BufferOddEvenMonitor implements BufferOddEven {
       putCond.await();
     }
     
-    //@ assume cprePut();
+    //@ assert cprePut();
     buffer[(first + nData) % MAX ] = d;
     nData++;
     
@@ -105,7 +105,7 @@ public class BufferOddEvenMonitor implements BufferOddEven {
         evenCond.await();
     }
     
-    //@ assume cpreGet(t);
+    //@ assert cpreGet(t);
     int d = buffer[first];
     buffer[first] = -1;
     first ++;

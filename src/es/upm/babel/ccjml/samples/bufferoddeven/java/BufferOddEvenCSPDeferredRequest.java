@@ -129,7 +129,7 @@ public class BufferOddEvenCSPDeferredRequest implements BufferOddEven, CSProcess
           
           if (nData < MAX){
             putRequest.remove(rq);
-            //@ assume true && invariant() && nData < MAX;
+            //@ assert nData < MAX;
 
             buffer[(first +nData)%MAX] = rq.getFst();
             nData++;
@@ -143,7 +143,7 @@ public class BufferOddEvenCSPDeferredRequest implements BufferOddEven, CSProcess
           if (nData > 0){
             if ( (buffer[first] % 2 == 0 && rq.getType() == Type.EVEN ) ||
                 (buffer[first] % 2 == 1 && rq.getType() == Type.ODD )){
-              //@assume true && invariant && cpreGet(rq.getType());
+              //@ assert cpreGet(rq.getType());
               getRequest.remove(rq);
               rq.getChannel().out().write(this.innerGet());
               anyResumed = true;

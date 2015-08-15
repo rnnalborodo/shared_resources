@@ -21,7 +21,7 @@ public class EventManagerSync extends AEventManager {
     //while (!true){
     //  wait();
     //}
-    //@ assume preFireEvent(eid) && true && repOk();
+    //@ assert preFireEvent(eid) && true && repOk();
     System.arraycopy(subscribed[eid], 0, unlistenedEvents[eid], 0, subscribed[eid].length);
     notifyAll();
   }
@@ -32,7 +32,7 @@ public class EventManagerSync extends AEventManager {
     //while (!true){
     //  wait();
     //}
-    //@ assume preSubscribe(eid) && true && repOk();
+    //@ assert  preSubscribe(eid) && true && repOk();
     subscribed[eid][pid]=true;
   }
 
@@ -42,7 +42,7 @@ public class EventManagerSync extends AEventManager {
     //while (!true){
     //  wait();
     //}
-    //@ assume preUnsubscribe(eid) && true && repOk();
+    //@ assert preUnsubscribe(eid) && true && repOk();
     subscribed[eid][pid]=false;
   }
 
@@ -56,7 +56,7 @@ public class EventManagerSync extends AEventManager {
         Logger.getLogger(EventManagerSync.class.getName()).log(Level.SEVERE, null, ex);
       }
     }
-    //@ assume preListen(pid) && cpreListen(pid) && repOk();
+    //@ assert preListen(pid) && cpreListen(pid) && repOk();
     int found = 0;
     for (int eid = 0; eid < unlistenedEvents.length && found == 0 ; eid++) {
         if (unlistenedEvents[eid][pid]){

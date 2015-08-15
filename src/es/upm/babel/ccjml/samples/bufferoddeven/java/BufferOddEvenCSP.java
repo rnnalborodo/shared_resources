@@ -108,22 +108,28 @@ public class BufferOddEvenCSP implements BufferOddEven, CSProcess {
       syncCond[GET_EVEN] = cpreGet(Type.EVEN);
       syncCond[GET_ODD] = cpreGet(Type.ODD) ;
       syncCond[PUT] = nData < MAX;
+      //@ assert syncCond[GET_EVEN] ==> cpreGet(Type.Even);
+      //@ assert syncCond[GET_ODD] ==> cpreGet(Type.Type.ODD);
+      //@ assert syncCond[PUT] ==> cprePut();
       
       chosenService = services.fairSelect(syncCond);
-
+      //@ assume chosenService < guards.length && chosenService >= 0;
+      //@ assume guards[chosenService].pending() > 0;
+      //@ assume syncCond[chosenService];
+      
       switch (chosenService){
         case GET_EVEN:
-          //@ assume cpreGet(Type.EVEN);
+          //@ assert cpreGet(Type.EVEN);
           cresp =(ChannelOutput) chGetEven.in().read();
           cresp.write(innerGet());
           break;
         case GET_ODD:
-          //@ assume cpreGet(Type.ODD);
+          //@ assert cpreGet(Type.ODD);
           cresp =(ChannelOutput) chGetOdd.in().read();
           cresp.write(innerGet());
           break;
         case PUT:
-          //@ assume cprePut();
+          //@ assert cprePut();
           int d = (Integer) chPut.in().read();
           buffer[(first +nData)%MAX] = d;
           nData++;

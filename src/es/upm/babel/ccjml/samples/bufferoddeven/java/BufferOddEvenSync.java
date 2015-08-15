@@ -61,7 +61,7 @@ public class BufferOddEvenSync implements BufferOddEven {
         wait();
       } catch (InterruptedException ex) { }
     }
-    //@ assume nData <= MAX - 1;
+    //@ assert nData <= MAX - 1;
     buffer[(first + nData) % MAX ] = d;
     nData++;
     notifyAll();
@@ -75,7 +75,7 @@ public class BufferOddEvenSync implements BufferOddEven {
         wait();
       } catch (InterruptedException ex) { }
     }
-    //@ assume cpreGet(t);
+    //@ assert cpreGet(t);
     int d = buffer[first];
     buffer[first] = -1;
     first++;
