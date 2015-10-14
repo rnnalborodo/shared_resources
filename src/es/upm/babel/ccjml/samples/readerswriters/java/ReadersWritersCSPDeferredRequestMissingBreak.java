@@ -17,7 +17,7 @@ import org.jcsp.lang.One2OneChannel;
  *
  */
 
-public class ReadersWritersCSPDeferredRequestBuggy extends AReadersWriters implements CSProcess {
+public class ReadersWritersCSPDeferredRequestMissingBreak extends AReadersWriters implements CSProcess {
 
   /** WRAPPER IMPLEMENTATION */
   /**
@@ -36,7 +36,7 @@ public class ReadersWritersCSPDeferredRequestBuggy extends AReadersWriters imple
   private final Queue<Request<Object>> afterWriteRequests = new LinkedList<>();
   private final Queue<Request<Object>> afterReadRequests = new LinkedList<>();
   
-  public ReadersWritersCSPDeferredRequestBuggy() {}
+  public ReadersWritersCSPDeferredRequestMissingBreak() {}
   
   // API for this resource
   @Override

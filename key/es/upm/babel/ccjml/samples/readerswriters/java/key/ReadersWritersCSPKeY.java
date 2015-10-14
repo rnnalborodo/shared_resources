@@ -72,28 +72,23 @@ public class ReadersWritersCSPKeY {
   /** Auxiliary variables to express 'assume' constraints as verifiable by KeY */
   //  explain each of the and why is that generally
   // safety
-  private boolean wellFormedGuards;
   private boolean wellFormedSyncCond;
-  private boolean propEffectiveFairSelect;
-  private boolean propSafeSelection;
+  private boolean cprePreservation;
   
   /*@ requires chBeforeWrite +
     @          chBeforeRead +
     @          chAfterWrite +
     @          chAfterRead > 0;
     @*/
-  //@ assignable wellFormedGuards, wellFormedSyncCond, propEffectiveFairSelect;
-  //@ assignable propSafeSelection;
+  //@ assignable wellFormedSyncCond;
+  //@ assignable cprePreservation;
   //@ assignable writers, readers;
-  //@ ensures wellFormedGuards && wellFormedSyncCond;
-  //@ ensures propEffectiveFairSelect;
-  //@ ensures propSafeSelection;
+  //@ ensures wellFormedSyncCond;
+  //@ ensures cprePreservation;
   public void serverInstance(){
     /** Init the variables as false like basic case */
-    wellFormedGuards = true;
     wellFormedSyncCond = true;
-    propSafeSelection = true;
-    propEffectiveFairSelect = true;
+    cprePreservation = true;
     
     /** Creating Guards (eligible channels) and its correspondence in syncCond */
     int[] guards = {
@@ -127,33 +122,29 @@ public class ReadersWritersCSPKeY {
                             syncCond.length == 4;
    
      chosenService = JCSPKeY.fairSelect(syncCond, guards);
-     propEffectiveFairSelect &= 
-                      chosenService < guards.length && chosenService >= 0 &&
-                      guards[chosenService] > 0 &&
-                      syncCond[chosenService];
                      
      switch(chosenService){
    
        case BEFORE_WRITE:
-         propSafeSelection &= cpreBeforeWrite();
+         cprePreservation &= cpreBeforeWrite();
          innerBeforeWrite();
          guards[BEFORE_WRITE]--;
          break;
    
        case BEFORE_READ:
-         propSafeSelection &= cpreBeforeRead();
+         cprePreservation &= cpreBeforeRead();
          innerBeforeRead();
          guards[BEFORE_READ]--;
          break;
    
        case AFTER_WRITE: 
-         propSafeSelection &= true;
+         cprePreservation &= true;
          innerAfterWrite();
          guards[AFTER_WRITE]--;
          break;
    
        case AFTER_READ:
-         propSafeSelection &= true;
+         cprePreservation &= true;
          innerAfterRead();
          guards[AFTER_READ]--;
          break;

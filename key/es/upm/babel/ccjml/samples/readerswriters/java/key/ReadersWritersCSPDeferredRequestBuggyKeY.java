@@ -1,5 +1,14 @@
 package es.upm.babel.ccjml.samples.readerswriters.java.key;
 
+/**
+ * Instrumentation following the template. 
+ * 
+ * condition for processing request of 'after_' are incorrect
+ * due to the fact that we need to put PRE formulae as well
+ * 
+ * @author BABEL Group
+ *
+ */
 public class ReadersWritersCSPDeferredRequestBuggyKeY {
   
   protected int readers = 0;
