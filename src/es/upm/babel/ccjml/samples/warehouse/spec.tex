@@ -1,0 +1,43 @@
+\begin{ctadsol}
+  \nombrectad{WarehouseAccessControl}
+  \operaciones
+  \operacion{enterWarehouse}{\nat[i] \por \nat[i]}
+  \operacion{exitWarehouse} {\nat[i] \por \nat[i]}
+  
+  \semdom
+  \estado{
+      \hspace*{1cm}(weight: Warehouse \tfun Weight \por\\
+      \hspace*{1cm} occupied: Warehouse \tfun \bool)}
+  \tipo{%
+    Warehouse = 0 .. N\_WAREHOUSES - 1\\
+    Weight = 0 .. MAX\_WEIGHT\_IN\_WAREHOUSE\\
+  }
+  
+  \inicial{self}{\\\hspace*{1.2cm}\forall n \in Warehouse \st weight(n) = 0 \land 
+    \neg occupied(n)}
+  \invariante{\\\hspace*{-1.6cm}\forall n \in Warehouse \st \\ \hspace*{-1.2cm}weight(n) \leq MAX\_WEIGHT\_IN\_WAREHOUSE}
+  
+  \pre{n \in \{0 \ldots N\_WAREHOUSES - 1 \} }
+  \cpre{w + weight(n) \leq MAX\_WEIGHT\_IN\_WAREHOUSE}
+  % \waiting{     
+  %   \forall w \in 0..MAX\_WEIGHT\_IN\_WAREHOUSE \st\\
+  %   \hspace*{2.5cm}\bigcup_{i=0}^{n}waiting(enterWarehouse(i,w) \cup\\
+  %   \hspace*{2.7cm}\bigcup_{i=0}^{n}waiting(exitWarehouse(i,w) = \emptyset
+  % }
+  \nomop{enterWarehouse(n,w)}
+  \post{weight\sal = weight\ent \oplus \{ n \mapsto weight\ent(n) + w \} \land\\
+    \hspace*{.8cm} (n > 0 \implies \\\hspace*{1.3cm}occupied\sal = occupied\ent \oplus \{ n \mapsto \falso \}) \land \\
+    \hspace*{.8cm} (n = 0 \implies occupied\sal = occupied\ent)}
+  
+  \pre{n \in \{ 0 \ldots N\_WAREHOUSES - 1 \} }
+  \cpre{n = N\_WAREHOUSES - 1 \lor \neg occupied(n+1)}
+  % \waiting{     
+  %   \forall w \in 0..MAX\_WEIGHT\_IN\_WAREHOUSE \st\\
+  %   \hspace*{2.5cm}\bigcup_{i=0}^{n}waiting(enterWarehouse(i,w) \cup\\
+  %   \hspace*{2.7cm}\bigcup_{i=0}^{n}waiting(exitWarehouse(i,w) = \emptyset
+  % }
+  \nomop{exitWarehouse(n,w)}
+  \post{weight\sal = weight\ent \oplus \{ n \mapsto weight\ent(n) - w \}\land \\
+    \hspace*{.8cm}(n < N\_WAREHOUSES - 1 \implies \\\hspace*{1.3cm}occupied\sal = occupied\ent \oplus \{ n+1 \mapsto \cierto \}) \land \\
+    \hspace*{.8cm}(n = N\_WAREHOUSES - 1 \implies occupied\sal = occupied\ent)}
+\end{ctadsol}

@@ -1,7 +1,5 @@
 package es.upm.babel.ccjml.samples.readerswriters.java.key;
 
-import es.upm.babel.ccjml.samples.csp.JCSPKeY;
-
 public class ReadersWritersCSPKeY {
   
   // SR invariant
@@ -121,7 +119,7 @@ public class ReadersWritersCSPKeY {
                             (!syncCond[AFTER_READ] || true) && 
                             syncCond.length == 4;
    
-     chosenService = JCSPKeY.fairSelect(syncCond, guards);
+     chosenService = es.upm.babel.ccjml.samples.csp.JCSPKeY.fairSelect(syncCond, guards);
                      
      switch(chosenService){
    

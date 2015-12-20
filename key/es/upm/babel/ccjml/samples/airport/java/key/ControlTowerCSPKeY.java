@@ -9,22 +9,24 @@ import es.upm.babel.ccjml.samples.csp.list.src.List;
  */ 
 public class ControlTowerCSPKeY {
 
+  public static int MAX = 4;
+  
   //@ public invariant runways.length > 0;
   private /*@ spec_public @*/boolean runways[];
 
   private /*@ spec_public @*/List runwaysInUse;
 
-  //@ ensures \result == (\exists int i; i >= 0 && i < monitor.length; runways[i]);
+  //@ ensures \result == (\exists int i; i >= 0 && i < MAX; runways[i]);
   private /*@ pure @*/ boolean cpreBeforeLanding(){
     return cpreBefore();
   }
 
-  //@ ensures \result == (\exists int i; i >= 0 && i < monitor.length; runways[i]);
+  //@ ensures \result == (\exists int i; i >= 0 && i < MAX; runways[i]);
   private /*@ pure @*/ boolean cpreBeforeTakeOff(){
     return cpreBefore();
   }
 
-  //@ ensures \result == (\exists int i; i >= 0 && i < monitor.length; runways[i]);
+  //@ ensures \result == (\exists int i; i >= 0 && i < MAX; runways[i]);
   private /*@ pure @*/ boolean cpreBefore(){
     for (int i = 0; i < runways.length; i++) {
       if (!runways[i]){
@@ -51,13 +53,13 @@ public class ControlTowerCSPKeY {
   /**
    *  Channel for receiving external request for each method
    */
-  //@ public invariat chBeforeLanding >=0;
+  //@ public invariant chBeforeLanding >=0;
   private int chBeforeLanding;
-  //@ public invariat chBeforeTakeOff >=0;
+  //@ public invariant chBeforeTakeOff >=0;
   private int chBeforeTakeOff;
-  //@ public invariat chAfterLanding >=0;
+  //@ public invariant chAfterLanding >=0;
   private int chAfterLanding;
-  //@ public invariat chAfterTakeOff >=0;
+  //@ public invariant chAfterTakeOff >=0;
   private int chAfterTakeOff;
 
   /** SERVER IMPLEMENTATION */
@@ -115,7 +117,7 @@ public class ControlTowerCSPKeY {
       syncCond[BEFORE_TAKEOFF] = cpreBeforeTakeOff() ;
       syncCond[AFTER_LANDING] = true;
       syncCond[AFTER_TAKEOFF] = true;
-      //@ assert syncCond is consistent,i.e, all refreshments are done properly
+      // assert syncCond is consistent,i.e, all refreshments are done properly
 
       wellFormedSyncCond &= 
           (!syncCond[BEFORE_LANDING] || cpreBeforeLanding()) &&
@@ -162,7 +164,7 @@ public class ControlTowerCSPKeY {
     } // end while
   } // end run
 
-  //@ requires cpreBeforeLanding && true && repOk();
+  //@ requires cpreBeforeLanding();
   //@ ensures \result < runways.length && \result >= 0 && runways[\result];
   private int getRunway(){
     int ra = 0;

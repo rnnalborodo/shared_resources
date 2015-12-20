@@ -1,5 +1,11 @@
 package es.upm.babel.ccjml.samples.readerswriters.java.key;
 
+/** 
+  * ReadersWriters implementation using Babel Priority Monitors.
+  * KeY Instrumentation.
+  * 
+  * @author Babel Group
+  */ 
 public class ReadersWritersMonitorKeyReadersPriority{
   
   /** INNER STATE */
@@ -9,153 +15,80 @@ public class ReadersWritersMonitorKeyReadersPriority{
     @    (readers > 0 ==> writers == 0) &&
     @    (writers > 0 ==> readers == 0 && writers == 1);
     @*/
-  protected /*@ spec_public @*/ int readers;  
-  protected /*@ spec_public @*/ int writer;
+  protected /*@ spec_public @*/ int readers = 0;  
+  protected /*@ spec_public @*/ int writers = 0;
 
   /** For every method, we declare its CPRE as a method */
-  //@ ensures \result == (activeReaders == 0 && !activeWriter);
-  protected /*@ pure @*/ boolean cpreBeforeWrite() {
-    return readers == 0 && writer == 0;
+  //@ public normal_behaviour
+  //@   ensures \result == (writers + readers == 0);  
+  protected /*@pure@*/ boolean cpreBeforeWrite() {
+    return readers == 0 && writers == 0 ;
   }
-
-  //@ ensures \result == (!activeWriter && writers == 0);
-  protected /*@ pure @*/ boolean cpreBeforeRead() {
-    return writer == 0 && writerCondWaiting == 0;
+  //@ public normal_behaviour
+  //@   ensures \result == writers == 0;
+  protected boolean /*@ pure @*/cpreBeforeRead() {
+    return writers == 0;
   }
   
-  /** Concurrent Mechanism instrumentation - MONITORs */
+  /** INSTRUMENTATION - MONITORs */
   //@ public invariant writersCondWaiting >= 0;
-  protected /*@ spec_public @*/int writerCondWaiting;
+  protected /*@ spec_public @*/ int writersCondWaiting;
   //@ public invariant readersCondWaiting >= 0;
-  protected /*@ spec_public @*/int readersCondWaiting;
+  protected /*@ spec_public @*/ int readersCondWaiting;
 
   // prop_0_1_signal depicted as an invariant
   //@ public invariant signaled >= 0 && signaled <= 1;
-  private /*@ spec_public @*/int signaled ;
+  private /*@ spec_public @*/ int signaled = 0;
 
-
-  //@ requires !activeWriter && activeReaders == 0; // pre implicit from code
-  //@ assignable readers, writers , signaled;
-  //@ assignable activeReaders, activeWriter;
+  // Node N0 : n readers and no writer
+  // only requires to check readers condition.
+  
+  //@ public normal_behaviour
+  //@ requires readers > 0;                    // from code - node (N0)
+  //@ assignable readersCondWaiting, signaled; // instrumentation
+  //@ assignable readers;             // inner state
   // prop_signal_0_1
   /*@ ensures 
-    @   ( readers == \old(readers) && writers == \old(writers)) ||
-    @   ( readers + 1 == \old(readers) && writers == \old(writers)) ||
-    @   ( readers == \old(readers) && writers + 1 == \old(writers)) ;
+    @   readersCondWaiting == \old(readersCondWaiting) ||
+    @   readersCondWaiting + 1 == \old(readersCondWaiting);
     @*/
   // prop_signal_effective
   /*@ ensures
-    @   signaled == 1
-    @   ==>
-    @   ( readers + 1 == \old(readers) || writers + 1 == \old(writers) );
+    @   signaled == 1 ==>
+    @   readersCondWaiting + 1 == \old(readersCondWaiting);
     @*/
-  // prop_signal_and_return
-  /*@ ensures activeReaders == \old(activeReaders) && 
-    @         activeWriter == \old(activeWriter);
-    @*/
-  //prop_safe_signal
-  /*@ ensures
-    @   ( readers + 1 == \old(readers) ==> cpreBeforeRead()) &&
-    @   ( writers + 1 == \old(writers) ==> cpreBeforeWrite()) ;
-    @*/
-  //prop_liveness
+  // prop_liveness
   /*@ ensures 
-    @   ( \old(readers) > 0 && cpreBeforeRead() 
-    @   || \old(writers) > 0 && cpreBeforeWrite())
+    @   \old(readersCondWaiting) > 0 && cpreBeforeRead() 
     @   ==>
     @   signaled == 1;
     @*/
-  public void afterWriteResumeThread() { 
+  //prop_safe_signal
+  /*@ ensures
+    @   readersCondWaiting + 1 == \old(readersCondWaiting) 
+    @   ==> 
+    @   cpreBeforeRead();
+    @*/
+  protected void unblockingCodeN0() {
     signaled = 0;
-    if (writers > 0){
-        writers--;
-        signaled++;
-    } else if (readers > 0){
-        readers--;
-        signaled++;
+    // prioritizing readers
+    if (readersCondWaiting > 0) {
+      readersCondWaiting --;
+      signaled ++;
     } 
   }
-  
-  //@ requires !activeWriter; // pre implicit from code
-  //@ requires activeReaders > 0;
-  //@ assignable readers, writers , signaled;
-  //@ assignable activeReaders, activeWriter;
-  //@ ensures writers == \old(writers);
-  // prop_signal_0_1
-  /*@ ensures 
-    @   ( readers == \old(readers) && writers == \old(writers)) ||
-    @   ( readers + 1 == \old(readers) && writers == \old(writers)) ||
-    @   ( readers == \old(readers) && writers + 1 == \old(writers)) ;
-    @*/
-  // prop_signal_effective
-  /*@ ensures
-    @   signaled == 1
-    @   ==>
-    @   ( readers + 1 == \old(readers) || writers + 1 == \old(writers) );
-    @*/
-  // prop_signal_and_return
-  /*@ ensures activeReaders == \old(activeReaders) && 
-    @         activeWriter == \old(activeWriter);
-    @*/
-  //prop_safe_signal
-  /*@ ensures
-    @   ( readers + 1 == \old(readers) ==> cpreBeforeRead()) &&
-    @   ( writers + 1 == \old(writers) ==> cpreBeforeWrite()) ;
-    @*/
-  //prop_liveness
-  /*@ ensures 
-    @   ( \old(readers) > 0 && cpreBeforeRead() 
-    @   || \old(writers) > 0 && cpreBeforeWrite())
-    @   ==>
-    @   signaled == 1;
-    @*/
-  public void beforeReadResumeThread() {
-    signaled = 0;
-    if (readers > 0 && writers == 0) {
-      readers--; // two or more process can read simultaneously
-      signaled++;
-    }
-  }
 
-  //@ requires !activeWriter; // pre implicit from code
-  //@ assignable readers, writers , signaled;
-  //@ assignable activeReaders, activeWriter;
-  // prop_signal_0_1
-  /*@ ensures 
-    @   ( readers == \old(readers) && writers == \old(writers)) ||
-    @   ( readers + 1 == \old(readers) && writers == \old(writers)) ||
-    @   ( readers == \old(readers) && writers + 1 == \old(writers)) ;
-    @*/
-  // prop_signal_effective
-  /*@ ensures
-    @   signaled == 1
-    @   ==>
-    @   ( readers + 1 == \old(readers) || writers + 1 == \old(writers) );
-    @*/
-  // prop_signal_and_return
-  /*@ ensures activeReaders == \old(activeReaders) && 
-    @         activeWriter == \old(activeWriter);
-    @*/
-  //prop_safe_signal
-  /*@ ensures
-    @   ( readers + 1 == \old(readers) ==> cpreBeforeRead()) &&
-    @   ( writers + 1 == \old(writers) ==> cpreBeforeWrite()) ;
-    @*/
-  //prop_liveness
-  /*@ ensures 
-    @   ( \old(readers) > 0 && cpreBeforeRead()
-    @   || \old(writers) > 0 && cpreBeforeWrite())
-    @   ==>
-    @   signaled == 1;
-    @*/
-  public void afterReadResumeThread()  { 
+  // Node 00 : no readers and no writer
+  protected void unblockingCode00() {
     signaled = 0;
-    if (readers == 0 && writers > 0){
-      writers--; // to avoid starvation when no readers
-      signaled++;
-    } else if (readers > 0 && writers == 0){
-      readers--; 
-      signaled++;
+    // prioritizing readers
+    if (readersCondWaiting > 0) {
+      readersCondWaiting--;
+      signaled ++;
+    } else if (writersCondWaiting > 0) { 
+      // if no reader can be awaken
+      writersCondWaiting--;
+      signaled ++;
     }
   }
 }
