@@ -28,8 +28,11 @@ public class WeightedCondition implements Comparable<Object>{
   }
 
   //@Override
-  public int compareTo(Object otra) {
-    return this.peso - ((PetEntrar)otra).peso;
+  public int compareTo(Object other) {
+    if (other instanceof WeightedCondition)
+      return this.weight - ((WeightedCondition)other).getWeight();
+    else
+        return -1;
   }
 
 }
