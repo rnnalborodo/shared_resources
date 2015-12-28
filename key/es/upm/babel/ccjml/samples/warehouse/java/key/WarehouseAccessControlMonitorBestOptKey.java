@@ -36,15 +36,15 @@ public class WarehouseAccessControlMonitorBestOptKey {
   private /*@ spec_public @*/ int exitingWarehouse[];
   
   //@ public invariant enteringWarehouseZero.length == N_ROBOTS;  
-	private /*@ spec_public @*/ WeightedCondition enteringWarehouseZero[];
-	
+  private /*@ spec_public @*/ WeightedCondition enteringWarehouseZero[];
+  
   //@ public invariant enteringWarehouse.length == N_WAREHOUSE;  
-	private /*@ spec_public @*/ WeightedCondition enteringWarehouse[];
+  private /*@ spec_public @*/ WeightedCondition enteringWarehouse[];
 
   //@ public invariant signaled == 0 || signaled == 1;
   private /*@ spec_public @*/ int signaled;
 
-	//@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
+  //@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
   //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
   //@ requires warehouse == 0 || !corridor[warehouse-1] ; // VER!!! split? lazy
   //@ assignable exitingWarehouse[((warehouse == 0)?0:warehouse-1)];
@@ -108,13 +108,13 @@ public class WarehouseAccessControlMonitorBestOptKey {
     @    signaled == 1
     @  ;
     @*/
-	public void unblockingEnterWarehouse(int warehouse, int weight) {
-		// unblocking code 
+  public void unblockingEnterWarehouse(int warehouse, int weight) {
+    // unblocking code 
     signaled = 0;
     //@ set awakenThread = -1;
-		if (warehouse ==  0){
-		  // if there are pending robots waiting for entering warehouse 0
-      for (int i =0; i<= enteringWarehouseZero.length; i++){
+    if (warehouse ==  0){
+      // if there are pending robots waiting for entering warehouse 0
+      for (int i =0; i< enteringWarehouseZero.length && signaled == 0; i++){
         if (enteringWarehouseZero[i].getCondition() > 0 && 
             enteringWarehouseZero[i].getWeight() <=  MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse]){
           enteringWarehouseZero[i].signalCondition();
@@ -123,45 +123,45 @@ public class WarehouseAccessControlMonitorBestOptKey {
           //@set awakenThread = N_WAREHOUSE + i;
           break;
         }
-			}
-		} else { // warehouse n > 0
-		  // if there is a robot waiting to exit to a corridor 'warehouse', wake it up
-			if (exitingWarehouse[warehouse-1] > 0)
-				exitingWarehouse[warehouse-1]--;
+      }
+    } else { // warehouse n > 0
+      // if there is a robot waiting to exit to a corridor 'warehouse', wake it up
+      if (exitingWarehouse[warehouse-1] > 0)
+        exitingWarehouse[warehouse-1]--;
         signaled ++;
         //@set awakenThread = warehouse -1;
 
-		}
-	}
-	
-	//@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
+    }
+  }
+  
+  //@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
   //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
   //@ assignable enteringWarehouse[((warehouse == 0)?0:warehouse-1)];
-	//@ assignable enteringWarehouseZero[*];
+  //@ assignable enteringWarehouseZero[*];
   //@ diverges false;
-	public void unblockingCodeExitWarehouse(int warehouse, int weight) {
-		// unblocking code 
+  public void unblockingCodeExitWarehouse(int warehouse, int weight) {
+    // unblocking code 
     signaled = 0;
     //@ set awakenThread = -1;
-		if (warehouse == 0) {
-      for (int i =0; i<= enteringWarehouseZero.length; i++){
+    if (warehouse == 0) {
+      for (int i =0; i< enteringWarehouseZero.length && signaled == 0; i++){
         if (enteringWarehouseZero[i].getCondition() > 0 && 
             enteringWarehouseZero[i].getWeight() <=  MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse]){
           enteringWarehouseZero[i].signalCondition();
           //@ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE;
           break;
-  			}
-			}
-		} else { // is there any robot in corridor (warehouse-1)?
-			if (enteringWarehouse[warehouse-1].getCondition() > 0 && 
-			    enteringWarehouse[warehouse-1].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse] ) {
-				enteringWarehouse[warehouse-1].signalCondition();
+        }
+      }
+    } else { // is there any robot in corridor (warehouse-1)?
+      if (enteringWarehouse[warehouse-1].getCondition() > 0 && 
+          enteringWarehouse[warehouse-1].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse] ) {
+        enteringWarehouse[warehouse-1].signalCondition();
         //@ assert warehouseCurrentWeight[warehouse-1] + enteringWarehouse[warehouse-1].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE;
-			}
-		}
-	}
+      }
+    }
+  }
 
-	//@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
+  //@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
   //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
   //@ assignable enteringWarehouse[((warehouse == 0)?0:warehouse-1)];
   //@ assignable enteringWarehouseZero[*];

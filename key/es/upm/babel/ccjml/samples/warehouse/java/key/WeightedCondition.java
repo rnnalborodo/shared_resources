@@ -4,7 +4,7 @@ package es.upm.babel.ccjml.samples.warehouse.java.key;
 public class WeightedCondition{
 
   /*@ public invariant weight >= 0 && 
-    @                  weight <= WarehouseAccessControlMonitorBestOptKey.MAX_WEIGHT_IN_WAREHOUSE;
+    @   weight <= WarehouseAccessControlMonitorBestOptKey.MAX_WEIGHT_IN_WAREHOUSE;
     @*/
   private /*@spec_public @*/int weight = 0;
 

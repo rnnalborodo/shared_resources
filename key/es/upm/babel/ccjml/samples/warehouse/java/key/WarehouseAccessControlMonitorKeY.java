@@ -38,22 +38,22 @@ public class WarehouseAccessControlMonitorKeY {
     @                  )
     @                  && enteringWarehouse.length == N_WAREHOUSE;
     @*/
-	private /*@ spec_public @*/int enteringWarehouse[][];
-	    
+  private /*@ spec_public @*/int enteringWarehouse[][];
+      
   /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; exitingWarehouse[i] >= 0)
-    @                  && exitingWarehouse.length == N_WAREHOUSE;	 
-	  @*/
-	private /*@ spec_public @*/ int exitingWarehouse[];
-	
-	//@ public invariant signaled == 0 || signaled == 1;
+    @                  && exitingWarehouse.length == N_WAREHOUSE;   
+    @*/
+  private /*@ spec_public @*/ int exitingWarehouse[];
+  
+  //@ public invariant signaled == 0 || signaled == 1;
   private /*@ spec_public @*/ int signaled;
 
-	//@ requires warehouse >0 && warehouse <= N_WAREHOUSE;
-	//@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
+  //@ requires warehouse >0 && warehouse <= N_WAREHOUSE;
+  //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
   //@ requires warehouse == 0 || !corridor[warehouse-1] ; // VER!!! split? lazy
-	//@ assignable enteringWarehouse[0][*]; 
-	//@ assignable exitingWarehouse[((warehouse == 0)?0:warehouse-1)];
-	//@ diverges false;
+  //@ assignable enteringWarehouse[0][*]; 
+  //@ assignable exitingWarehouse[((warehouse == 0)?0:warehouse-1)];
+  //@ diverges false;
   //prop_safe_signal
   /*@ ensures
     @  (\forall int i; i>=0 && i < MAX_WEIGHT_IN_WAREHOUSE; 
@@ -110,38 +110,38 @@ public class WarehouseAccessControlMonitorKeY {
     @    signaled == 1
     @  ;
     @*/
-	public void unblockingCodeEnterWarehouse(int warehouse, int weight) {
-	  //@ set awakenThread = -1;
-	  signaled = 0;
-		if (warehouse == 0){
-  	  int from = MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse];
-	    /*@ loop_invariant
+  public void unblockingCodeEnterWarehouse(int warehouse, int weight) {
+    //@ set awakenThread = -1;
+    signaled = 0;
+    if (warehouse == 0){
+      int from = MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse];
+      /*@ loop_invariant
         @   currentWeight >= 0 && currentWeight < MAX_WEIGHT_IN_WAREHOUSE &&
         @   (\forall int j; 0<= j && j < currentWeight; enteringWarehouse[warehouse][j] == 0 );
         @ assignable enteringWarehouse[warehouse][*];
         @ decreasing MAX_WEIGHT_IN_WAREHOUSE - currentWeight ;
         @*/
-  		for (int currentWeight = from; currentWeight < MAX_WEIGHT_IN_WAREHOUSE; currentWeight++){
-  			if (enteringWarehouse[warehouse][currentWeight] > 0 ){
-  				  enteringWarehouse[warehouse][currentWeight]--;
-  				  //@ set awakenThread = N_WAREHOUSE + currentWeight;
-  				  signaled++;
-  				  break;
-  			}
-  		}
-		} else { // exiting could perform iff a robot enter to any warehouse but the first 
-			if (exitingWarehouse[warehouse-1]> 0)
-				exitingWarehouse[warehouse-1]--;
-			  //@ set awakenThread = warehouse - 1;
-			  signaled ++;
-		}
-	}
+      for (int currentWeight = from; currentWeight < MAX_WEIGHT_IN_WAREHOUSE; currentWeight++){
+        if (enteringWarehouse[warehouse][currentWeight] > 0 ){
+            enteringWarehouse[warehouse][currentWeight]--;
+            //@ set awakenThread = N_WAREHOUSE + currentWeight;
+            signaled++;
+            break;
+        }
+      }
+    } else { // exiting could perform iff a robot enter to any warehouse but the first 
+      if (exitingWarehouse[warehouse-1]> 0)
+        exitingWarehouse[warehouse-1]--;
+        //@ set awakenThread = warehouse - 1;
+        signaled ++;
+    }
+  }
 
-	//@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
+  //@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
   //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
-	//@ requires corridor[warehouse-1]; // post of exitWarehouse
+  //@ requires corridor[warehouse-1]; // post of exitWarehouse
   //@ assignable enteringWarehouse[0][*];
-	//@ diverges false;
+  //@ diverges false;
   //prop_safe_signal
   /*@ ensures
     @  (\forall int i; i>=0 && i < MAX_WEIGHT_IN_WAREHOUSE; 
@@ -149,7 +149,7 @@ public class WarehouseAccessControlMonitorKeY {
     @                     warehouseCurrentWeight[warehouse-1] + i <= MAX_WEIGHT_IN_WAREHOUSE
     @  );
     @*/
-	 // prop_signal_0_1
+   // prop_signal_0_1
   /*@ ensures 
     @    (\forall int i; i>=0 && i < MAX_WEIGHT_IN_WAREHOUSE; i != awakenThread ==>
     @                   (enteringWarehouse[(warehouse == 0)?0:warehouse-1][i] ==
@@ -179,11 +179,11 @@ public class WarehouseAccessControlMonitorKeY {
     @    signaled == 1
     @  ;
     @*/
-	public void unblockingCodeExitWarehouse(int warehouse, int weight) {
-	  signaled = 0;
-	  //@ set awakenThread = -1;
-		// unblocking code 
-		int wid = (warehouse == 0)?0:warehouse-1;
+  public void unblockingCodeExitWarehouse(int warehouse, int weight) {
+    signaled = 0;
+    //@ set awakenThread = -1;
+    // unblocking code 
+    int wid = (warehouse == 0)?0:warehouse-1;
     int from = MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[wid];
     /*@ loop_invariant
       @   currentWeight >= 0 && currentWeight < MAX_WEIGHT_IN_WAREHOUSE &&

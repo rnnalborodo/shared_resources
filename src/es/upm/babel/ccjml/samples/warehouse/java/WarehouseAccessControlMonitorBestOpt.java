@@ -21,15 +21,45 @@ import es.upm.babel.cclib.Monitor.Cond;
 public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessControl {
 
   // INNER STATE ATTRIBUTES
+  /**
+   *  Describes which corridor is free. It has the same length that 
+   *  warehouseCurrentWeight
+   */
   private boolean corridor[];
+  /**
+   *  Represents the current weight of all warehouses. All values must be 
+   *  equal or less than Robots.MAX_WEIGHT_IN_WAREHOUSE. 
+   */
   private int warehouseCurrentWeight[];
       
-  // Monitor & conditions definition
-	private Monitor mutex;
-	private Cond exitingWarehouse[]; // from warehouse i to corridor i+1
+  // MONITOR AND CONDITIONS
+  private Monitor mutex;
+  
+  /** 
+   * List of weighted conditions for entering to warehouse 0. Robots that
+   * are waiting to enter to the warehouse complex. There can be as many as 
+   * they want.
+   * 
+   * The priority is over the weight of the robot that are entering and 
+   * can be changed by reimplementing 'compareTo' method of WeightedCondition. 
+   */
 	private PriorityQueue<WeightedCondition> enteringWarehouseZero;
+	
+  /** 
+   * Array of Robots.N_WAREHOUSE conditions for blocking calls to enterWarehouse 
+   * when the warehouse > 0.
+   * 
+   * This optimization is made due to the fact that only one robot can be 
+   * waiting to enter.
+   */
 	private WeightedCondition enteringWarehouse[];
 
+  /**
+   * Conditions for blocking exitWarehouse invocations. The length of the 
+   * array is Robots.N_WAREHOUSE.
+   */
+	private Cond exitingWarehouse[];
+	
 	public WarehouseAccessControlMonitorBestOpt() {
 	  warehouseCurrentWeight = new int[Robots.N_WAREHOUSE];
     corridor = new boolean[Robots.N_WAREHOUSE-1];
