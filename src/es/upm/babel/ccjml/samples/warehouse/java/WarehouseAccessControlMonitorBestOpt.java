@@ -69,10 +69,6 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
 		enteringWarehouse = new WeightedCondition[Robots.N_WAREHOUSE-1];
 		enteringWarehouseZero = new PriorityQueue<>(Robots.N_ROBOTS);
 
-//		// At most N_ROBOTS may enter to the warehouse 0
-//		for(int i = 0; i < Robots.N_ROBOTS; i++)
-//			enteringWarehouseZero[i] = new WeightedCondition(mutex.newCond());
-		
 		/*
 		 * N_WAREHOUSE-1 conditions for entering to warehouse n (n > 0)
 		 * N_WAREHOUSE-1 conditions for exiting any warehouse
@@ -86,7 +82,7 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
 	public void enterWarehouse(int warehouse, int weight) {
 		mutex.enter();
 		if (warehouseCurrentWeight[warehouse] + weight > Robots.MAX_WEIGHT_IN_WAREHOUSE) {
-
+		  // CPRE does not hold, see where to put it
 			if (warehouse == 0){ // warehouse 0 -> create a new WeightedCond
 				WeightedCondition wc = new WeightedCondition(mutex.newCond(), weight);
 				wc.getCondition().await();
@@ -99,10 +95,12 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
 
 	  //@ assert warehouseCurrentWeight[warehouse] + weight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
 
-		//updating the corridor if needed
+    //updating the corridor if we are not exiting the last warehouse
     if (warehouse != 0)
       corridor[warehouse-1] = false;
-		warehouseCurrentWeight[warehouse] += weight;
+    
+    // updating warehouse current weight
+    warehouseCurrentWeight[warehouse] += weight;
 
 		// unblocking code 
 		if (warehouse ==  0){
@@ -132,9 +130,13 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
 			exitingWarehouse[warehouse].await(); 
 
 		//@ assert warehouse != Robots.N_WAREHOUSE -1 && corridor[warehouse];
-		warehouseCurrentWeight[warehouse] -= weight;
-		if ( warehouse != Robots.N_WAREHOUSE -1 )
-			corridor[warehouse] = true;
+
+		// updating the current weight of the warehouse
+    warehouseCurrentWeight[warehouse] -= weight;
+    
+    // updating the leaving corridor iff the robot enters from a corridor
+    if ( warehouse != Robots.N_WAREHOUSE -1 )
+      corridor[warehouse] = true;
 
 		// unblocking code 
 		if (warehouse == 0) {
