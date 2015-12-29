@@ -13,7 +13,7 @@ import es.upm.babel.cclib.Monitor.Cond;
  * @author BABEL Group - Technical University of Madrid
  */
 
-public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessControl {
+public class WarehouseAccessControlMonitorNaiveOptWithBug implements WarehouseAccessControl {
   
   // INNER STATE ATTRIBUTES
   /**
@@ -46,7 +46,7 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
   /** 
    * constructor
    */
-	public WarehouseAccessControlMonitorNaiveOpt() {
+	public WarehouseAccessControlMonitorNaiveOptWithBug() {
 	  warehouseCurrentWeight = new int[Robots.N_WAREHOUSE];
     corridor = new boolean[Robots.N_WAREHOUSE-1];
 	  
@@ -78,8 +78,10 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
     warehouseCurrentWeight[warehouse] += weight;
 
 		if (warehouse == 0){
-  	  int availableWeight = Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse];
-  		for (int currentWeight = availableWeight; currentWeight > 0; currentWeight--){
+  	  int from = Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse];
+  	  // BUG: instead of decrementing the control variable, we incremented
+  	  // correctnesse
+  		for (int currentWeight = from; currentWeight >= 0; currentWeight++){
   			if (enteringWarehouse[warehouse][currentWeight].waiting() > 0 ){
   				  enteringWarehouse[warehouse][currentWeight].signal();
   			    //@ assert warehouseCurrentWeight[warehouse] + currentWeight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
@@ -114,8 +116,8 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
 
 		// unblocking code 
 		int wid = (warehouse == 0)?0:warehouse-1;
-    int availableWeight = Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse];
-    for (int currentWeight = availableWeight; currentWeight >= 0; currentWeight--){
+    int from = Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[wid];
+    for (int currentWeight = from; currentWeight >= 0; currentWeight--){
       if (enteringWarehouse[wid][currentWeight].waiting() > 0 ){
           enteringWarehouse[wid][currentWeight].signal();
           break;
