@@ -21,6 +21,8 @@ public class WarehouseAccessControlMonitor implements WarehouseAccessControl {
   /**
    *  Describes which corridor is free. It has the same length that 
    *  warehouseCurrentWeight
+   *  
+   *  true -> free corridor
    */
   private boolean corridor[];
   /**

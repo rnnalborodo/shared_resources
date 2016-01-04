@@ -161,13 +161,4 @@ public class WarehouseAccessControlMonitorBestOptKey {
     }
   }
 
-  //@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
-  //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
-  //@ assignable enteringWarehouse[((warehouse == 0)?0:warehouse-1)];
-  //@ assignable enteringWarehouseZero[*];
-  //@ diverges false;
-  public void _unblockingCodeExitWarehouse(int warehouse, int weight) {
-    
-  }
-
 }

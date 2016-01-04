@@ -31,10 +31,10 @@ public class ReadersWritersMonitorKeyReadersPriority{
   }
   
   /** INSTRUMENTATION - MONITORs */
-  //@ public invariant writersCondWaiting >= 0;
-  protected /*@ spec_public @*/ int writersCondWaiting;
-  //@ public invariant readersCondWaiting >= 0;
-  protected /*@ spec_public @*/ int readersCondWaiting;
+  //@ public invariant writersCondition >= 0;
+  protected /*@ spec_public @*/ int writersCondition;
+  //@ public invariant readersCondition >= 0;
+  protected /*@ spec_public @*/ int readersCondition;
 
   // prop_0_1_signal depicted as an invariant
   //@ public invariant signaled >= 0 && signaled <= 1;
@@ -43,51 +43,77 @@ public class ReadersWritersMonitorKeyReadersPriority{
   // Node N0 : n readers and no writer
   // only requires to check readers condition.
   
-  //@ public normal_behaviour
   //@ requires readers > 0;                    // from code - node (N0)
-  //@ assignable readersCondWaiting, signaled; // instrumentation
-  //@ assignable readers;             // inner state
+  //@ assignable readersCondition, writersCondition , signaled;
+  //prop_safe_signal
+  /*@ ensures
+    @   ( (readersCondition + 1 == \old(readersCondition)) ==> cpreBeforeRead()) &&
+    @   ( (writersCondition + 1 == \old(writersCondition)) ==> cpreBeforeWrite()) ;
+    @*/
   // prop_signal_0_1
   /*@ ensures 
-    @   readersCondWaiting == \old(readersCondWaiting) ||
-    @   readersCondWaiting + 1 == \old(readersCondWaiting);
+    @   ( readersCondition == \old(readersCondition) && writersCondition == \old(writersCondition)) ||
+    @   ( readersCondition + 1 == \old(readersCondition) && writersCondition == \old(writersCondition)) ||
+    @   ( readersCondition == \old(readersCondition) && writersCondition + 1 == \old(writersCondition)) ;
     @*/
   // prop_signal_effective
   /*@ ensures
-    @   signaled == 1 ==>
-    @   readersCondWaiting + 1 == \old(readersCondWaiting);
+    @   signaled == 1
+    @   ==>
+    @   ( readersCondition + 1 == \old(readersCondition) || writersCondition + 1 == \old(writersCondition) );
     @*/
-  // prop_liveness
+  //prop_liveness
   /*@ ensures 
-    @   \old(readersCondWaiting) > 0 && cpreBeforeRead() 
+    @   ( \old(readersCondition) > 0 && cpreBeforeRead() 
+    @   || \old(writersCondition) > 0 && cpreBeforeWrite())
     @   ==>
     @   signaled == 1;
-    @*/
-  //prop_safe_signal
-  /*@ ensures
-    @   readersCondWaiting + 1 == \old(readersCondWaiting) 
-    @   ==> 
-    @   cpreBeforeRead();
     @*/
   protected void unblockingCodeN0() {
     signaled = 0;
     // prioritizing readers
-    if (readersCondWaiting > 0) {
-      readersCondWaiting --;
+    if (readersCondition > 0) {
+      readersCondition --;
       signaled ++;
     } 
   }
 
   // Node 00 : no readers and no writer
+  //@ requires readers == 0 && writers == 0;                    // from code - node (N0)
+  //@ assignable readersCondition, writersCondition , signaled;
+  //prop_safe_signal
+  /*@ ensures
+    @   ( (readersCondition + 1 == \old(readersCondition)) ==> cpreBeforeRead()) &&
+    @   ( (writersCondition + 1 == \old(writersCondition)) ==> cpreBeforeWrite()) ;
+    @*/
+  // prop_signal_0_1
+  /*@ ensures 
+    @   ( readersCondition == \old(readersCondition) && writersCondition == \old(writersCondition)) ||
+    @   ( readersCondition + 1 == \old(readersCondition) && writersCondition == \old(writersCondition)) ||
+    @   ( readersCondition == \old(readersCondition) && writersCondition + 1 == \old(writersCondition)) ;
+    @*/
+  // prop_signal_effective
+  /*@ ensures
+    @   signaled == 1
+    @   ==>
+    @   ( readersCondition + 1 == \old(readersCondition) || writersCondition + 1 == \old(writersCondition) );
+    @*/
+  //prop_liveness
+  /*@ ensures 
+    @   ( \old(readersCondition) > 0 && cpreBeforeRead() 
+    @   || \old(writersCondition) > 0 && cpreBeforeWrite())
+    @   ==>
+    @   signaled == 1;
+    @*/
   protected void unblockingCode00() {
     signaled = 0;
     // prioritizing readers
-    if (readersCondWaiting > 0) {
-      readersCondWaiting--;
+    if (readersCondition > 0) {
+      readersCondition--;
       signaled ++;
-    } else if (writersCondWaiting > 0) { 
+    } else if (writersCondition > 0) { 
       // if no reader can be awaken
-      writersCondWaiting--;
+      writersCondition--;
       signaled ++;
     }
   }

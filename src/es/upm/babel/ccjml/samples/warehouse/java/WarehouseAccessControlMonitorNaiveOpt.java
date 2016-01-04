@@ -48,11 +48,11 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
    */
 	public WarehouseAccessControlMonitorNaiveOpt() {
 	  warehouseCurrentWeight = new int[Robots.N_WAREHOUSE];
-    corridor = new boolean[Robots.N_WAREHOUSE-1];
+    corridor = new boolean[Robots.N_WAREHOUSE];
 	  
 		mutex = new Monitor();
-		enteringWarehouse = new Cond[Robots.N_WAREHOUSE-1][Robots.MAX_WEIGHT_IN_WAREHOUSE -1];
-		exitingWarehouse = new Cond[Robots.N_WAREHOUSE-1];
+		enteringWarehouse = new Cond[Robots.N_WAREHOUSE][Robots.MAX_WEIGHT_IN_WAREHOUSE];
+		exitingWarehouse = new Cond[Robots.N_WAREHOUSE];
 
 		for(int i = 0; i < Robots.N_WAREHOUSE; i++){
 		  for(int j = 0; j < Robots.MAX_WEIGHT_IN_WAREHOUSE; j++){
@@ -79,13 +79,15 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
 
 		if (warehouse == 0){
   	  int availableWeight = Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse];
-  		for (int currentWeight = availableWeight; currentWeight > 0; currentWeight--){
-  			if (enteringWarehouse[warehouse][currentWeight].waiting() > 0 ){
-  				  enteringWarehouse[warehouse][currentWeight].signal();
-  			    //@ assert warehouseCurrentWeight[warehouse] + currentWeight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
-  				  break;
-  			}
-  		}
+  	  if (availableWeight > 0) {
+    		for (int currentWeight = 1; currentWeight <= availableWeight; currentWeight++){
+    			if (enteringWarehouse[warehouse][currentWeight].waiting() > 0 ){
+    				  enteringWarehouse[warehouse][currentWeight].signal();
+    			    //@ assert warehouseCurrentWeight[warehouse] + currentWeight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
+    				  break;
+    			}
+    		}
+  	  }
 		} else { // exiting could perform iff a robot enter to any warehouse but the first 
 			if (exitingWarehouse[warehouse-1].waiting() > 0){
 				exitingWarehouse[warehouse-1].signal();
