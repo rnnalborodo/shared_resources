@@ -256,13 +256,13 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
     int availableWeight = MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[wid];
     if (availableWeight > 0) {
       /*@ loop_invariant 
-        @    ((currentWeight >= 1 && currentWeight <= availableWeight + 1) || signaled == 1) && 
+        @    ((currentWeight >= 1 && currentWeight <= availableWeight) || signaled == 1) && 
         @         (\forall int l; l >= 1 && l < currentWeight ; enteringWarehouse[wid][l] == 0) &&
         @         (awakenThreadC != -1 ==> signaled == 1);
         @ assignable enteringWarehouse[wid][*];
         @ decreases availableWeight - currentWeight;
         @*/  
-      for (int currentWeight = 1; currentWeight <= availableWeight && signaled == 0; currentWeight++){
+      for (int currentWeight = 1; currentWeight < availableWeight && signaled == 0; currentWeight++){
         if (enteringWarehouse[wid][currentWeight] > 0 ){
             enteringWarehouse[wid][currentWeight]--;
             //@ assert warehouseCurrentWeight[wid] + currentWeight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;

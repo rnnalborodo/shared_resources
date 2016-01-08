@@ -11,27 +11,24 @@ public class WeightedCondition{
   //@ public invariant weight >=0 ;
   private /*@spec_public @*/int condition;
 
-  
-  public WeightedCondition(int condition, int w) { 
-    this.condition = condition; 
-    this.weight = w;
-  }
-  public WeightedCondition(int condition) { 
-    this.condition = condition; 
-  }
-
+  //@ ensures \result == weight;
   public int getWeight() {
     return weight;
   }
 
+  //@ assignable weight;
+  //@ ensures this.weight == weight;
   public void setWeight(int weight) {
     this.weight = weight;
   }
 
+  //@ ensures \result == condition;
   public int getCondition() {
     return condition;
   }
-
+  
+  //@ assignable condition;
+  //@ ensures \old(condition) == condition + 1;
   public void signalCondition() {
     condition -- ;
   }

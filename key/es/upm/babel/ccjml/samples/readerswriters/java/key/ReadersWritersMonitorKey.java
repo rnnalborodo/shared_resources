@@ -1,6 +1,15 @@
 package es.upm.babel.ccjml.samples.readerswriters.java.key;
 
-// writers priority 
+/**
+ * ReadersWriters implementation using Babel Priority Monitors.
+ * KeY Instrumentation.
+ * 
+ *  Verified 2016 01 05 
+ * 
+ * @version 1
+ * @author Raul Alborodo - Babel Group
+ *
+ */
 public class ReadersWritersMonitorKey{
   
   /** INNER STATE */

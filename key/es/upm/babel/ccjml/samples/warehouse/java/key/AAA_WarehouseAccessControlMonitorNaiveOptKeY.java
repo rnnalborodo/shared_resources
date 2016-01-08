@@ -78,17 +78,17 @@ public class AAA_WarehouseAccessControlMonitorNaiveOptKeY {
   
   //@ requires warehouse >= 0 && warehouse < N_WAREHOUSE;
   //@ requires weight > 0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
-  //@ requires warehouse > 0 ==> corridor[warehouse] ;
+  //@ requires warehouse > 0 ==> !corridor[warehouse] ;
 
   //@ assignable signaled, awakenThread;
   //@ assignable exitingWarehouse[((warehouse == 0)?0:warehouse-1)];
   //@ assignable enteringWarehouse[0][*];
   //@ diverges false;
-  //prop_safe_signal
+  //prop_safe_signal -> VERIFIED
   /*@ ensures
     @  (\forall int i; i>=0 && i < N_WAREHOUSE; 
     @        (exitingWarehouse[i] + 1 == \old(exitingWarehouse[i]) 
-    @                  ==> ( i+1 != N_WAREHOUSE && corridor[i]) 
+    @                  ==> ( i+1 != N_WAREHOUSE && !corridor[i]) 
     @        )
     @  );
     @*/
@@ -135,7 +135,7 @@ public class AAA_WarehouseAccessControlMonitorNaiveOptKeY {
     @    (   
     @      (awakenThread <= N_WAREHOUSE ==>
     @             (\old(exitingWarehouse)[awakenThread] > 0 && 
-    @                 awakenThread + 1 != N_WAREHOUSE && corridor[awakenThread]
+    @                 awakenThread + 1 != N_WAREHOUSE && !corridor[awakenThread]
     @             )
     @      )
     @    )
@@ -216,7 +216,7 @@ public class AAA_WarehouseAccessControlMonitorNaiveOptKeY {
     for (int currentWeight = availableWeight; currentWeight > 0; currentWeight--){
       if (enteringWarehouse[wid][availableWeight] > 0 ){
           enteringWarehouse[wid][currentWeight ]--;
-          //@ set awakenThread = availableWeight;
+          //@ set awakenThread = currentWeight;
           signaled++;
           break;
       }

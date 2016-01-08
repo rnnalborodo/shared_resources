@@ -40,10 +40,10 @@ interface WarehouseAccessControl {
   
   /*@ public normal_behaviour
     @   requires n => 0 && n < N-WAREHOUSE && w > 0; 
-    @   cond_sync !occupied[w-1];
-    @   assignable  weightInWarehouse[w], occupied[w-1];
+    @   cond_sync n != N_WAREHOUSE ==> !occupied[w];
+    @   assignable weightInWarehouse[w], occupied[w-1];
     @   ensures weightInWarehouse[w] == old(weightInWarehouse)[w] - w &&
-    @           (n< N_WAREHOUSE ==> occupied[w-1]);
+    @           (n < N_WAREHOUSE ==> occupied[w]);
     @*/
   public void exitWarehouse(int n, int w);
 }

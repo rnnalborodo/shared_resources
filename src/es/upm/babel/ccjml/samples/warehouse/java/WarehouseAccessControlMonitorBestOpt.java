@@ -62,11 +62,11 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
 	
 	public WarehouseAccessControlMonitorBestOpt() {
 	  warehouseCurrentWeight = new int[Robots.N_WAREHOUSE];
-    corridor = new boolean[Robots.N_WAREHOUSE-1];
+    corridor = new boolean[Robots.N_WAREHOUSE];
 	  
 		mutex = new Monitor();
-		exitingWarehouse = new Cond[Robots.N_WAREHOUSE-1];
-		enteringWarehouse = new WeightedCondition[Robots.N_WAREHOUSE-1];
+		exitingWarehouse = new Cond[Robots.N_WAREHOUSE];
+		enteringWarehouse = new WeightedCondition[Robots.N_WAREHOUSE];
 		enteringWarehouseZero = new PriorityQueue<>(Robots.N_ROBOTS);
 
 		/*
@@ -112,12 +112,17 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
 					enteringWarehouseZero.remove(wc);
 					//@ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
 					break;
+				} else if (wc.getWeight() >  Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse]) {
+				  //priority queue, no other 'wc' can be chosen
+				  break;
 				}
 			}
 		} else { // warehouse n > 0
 		  // if there is a robot waiting to exit to a corridor 'warehouse', wake it up
-			if (exitingWarehouse[warehouse-1].waiting() > 0)
+			if (exitingWarehouse[warehouse-1].waiting() > 0){
 				exitingWarehouse[warehouse-1].signal();
+        //@ assert warehouse-1 == Robots.N_WAREHOUSE -1 || !corridor[warehouse-1];
+      }
 		}
 
 		mutex.leave();
@@ -129,7 +134,7 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
 		if (warehouse != Robots.N_WAREHOUSE -1 && corridor[warehouse]) 	
 			exitingWarehouse[warehouse].await(); 
 
-		//@ assert warehouse != Robots.N_WAREHOUSE -1 && corridor[warehouse];
+		//@ assert warehouse == Robots.N_WAREHOUSE -1 || !corridor[warehouse];
 
 		// updating the current weight of the warehouse
     warehouseCurrentWeight[warehouse] -= weight;
@@ -147,7 +152,10 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
           enteringWarehouseZero.remove(wc);
           //@ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
           break;
-  			}
+  			} else if (wc.getWeight() >  Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse]) {
+          //priority queue, no other 'wc' can be chosen
+          break;
+        }
 			}
 		} else { // is there any robot in corridor (warehouse-1)?
 			if (enteringWarehouse[warehouse-1].getCondition().waiting() > 0 && 
