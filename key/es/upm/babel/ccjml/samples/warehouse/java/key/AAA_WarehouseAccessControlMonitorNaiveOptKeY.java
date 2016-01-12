@@ -34,8 +34,8 @@ public class AAA_WarehouseAccessControlMonitorNaiveOptKeY {
       
   // Monitor & conditions definition
   /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE; 
-    @                     enteringWarehouse[i].length == MAX_WEIGHT_IN_WAREHOUSE 
-    @                     &&  (\forall int j;j >=0 && j< MAX_WEIGHT_IN_WAREHOUSE;
+    @                     enteringWarehouse[i].length == MAX_WEIGHT_IN_WAREHOUSE +1
+    @                     &&  (\forall int j;j >=0 && j<= MAX_WEIGHT_IN_WAREHOUSE;
     @                            enteringWarehouse[i][j] >= 0)
     @                  )
     @                  && enteringWarehouse.length == N_WAREHOUSE;
@@ -62,7 +62,7 @@ public class AAA_WarehouseAccessControlMonitorNaiveOptKeY {
     //@ set awakenThread = -1;
     signaled = 0;
     if (warehouse == 0){
-      int availableWeight = MAX_WEIGHT_IN_WAREHOUSE ;
+      int availableWeight = MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse];
       /*@ loop_invariant 
         @    (i >= 0 && i <= MAX_WEIGHT_IN_WAREHOUSE && 
         @         (\forall int j; j >= 0 && j < i ; enteringWarehouse[warehouse][j] == 1 ));
@@ -95,8 +95,7 @@ public class AAA_WarehouseAccessControlMonitorNaiveOptKeY {
   // prop_signal_0_1 -> VERIFIED!
   /* @ ensures 
     @    (\forall int i; i>=0 && i < MAX_WEIGHT_IN_WAREHOUSE; i != N_WAREHOUSE - awakenThread ==>
-    @                   (enteringWarehouse[0][i] == 
-    @                        \old(enteringWarehouse[0][i]))
+    @                   (enteringWarehouse[0][i] == \old(enteringWarehouse[0][i]))
     @    )
     @    &&
     @    (\forall int i; i>=0 && i < N_WAREHOUSE; i != awakenThread ==>
@@ -200,7 +199,7 @@ public class AAA_WarehouseAccessControlMonitorNaiveOptKeY {
     @    signaled == 1
     @  ;
     @*/
-  public void unblockingCodeExitWarehouse(int warehouse, int weight) {
+  public void exitWarehouseUnblockingCode(int warehouse, int weight) {
     signaled = 0;
     //@ set awakenThread = -1;
     // unblocking code 
@@ -222,5 +221,16 @@ public class AAA_WarehouseAccessControlMonitorNaiveOptKeY {
       }
     }
   }     
+
+    //@ assignable exitingWarehouse[*];
+  //@ assignable enteringWarehouse[N_WAREHOUSE-1][*];
+  // @ assignable enteringWarehouseZero[*];
+  //@ assignable warehouseCurrentWeight[*];
+  public void poorf(){
+    warehouseCurrentWeight[0] = MAX_WEIGHT_IN_WAREHOUSE;
+    enteringWarehouse[N_WAREHOUSE-1][MAX_WEIGHT_IN_WAREHOUSE] = 1;
+    // enteringWarehouseZero[0].setWeight(0);
+    exitingWarehouse[0] = N_WAREHOUSE;
+  }
 
 }

@@ -17,33 +17,34 @@ public class WarehouseAccessControlMonitorKeY {
   //@ ghost int awakenThreadR;
   
   //@ public invariant N_WAREHOUSE > 0;
-  public static final int N_WAREHOUSE = 4;
+  public static final int N_WAREHOUSE = 2;
   //@ public invariant MAX_WEIGHT_IN_WAREHOUSE > 0;
-  public static final int MAX_WEIGHT_IN_WAREHOUSE = 10;
+  public static final int MAX_WEIGHT_IN_WAREHOUSE = 3;
   
   // INNER STATE ATTRIBUTES
   
   //@ public invariant corridor.length == N_WAREHOUSE - 1;
   private /*@ spec_public @*/ boolean corridor[];
   
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
-    @                            warehouseCurrentWeight[i] >= 0 && 
-    @                            warehouseCurrentWeight[i] <= MAX_WEIGHT_IN_WAREHOUSE)
-    @                  && warehouseCurrentWeight.length == N_WAREHOUSE;
+  /*@ public invariant warehouseCurrentWeight.length == N_WAREHOUSE
+    @                  && (\forall int i; i >=0 && i< N_WAREHOUSE; 
+    @                             warehouseCurrentWeight[i] >= 0 && 
+    @                              warehouseCurrentWeight[i] <= MAX_WEIGHT_IN_WAREHOUSE)
+    @                  ;
     @*/
   private /*@ spec_public @*/int warehouseCurrentWeight[];
       
   // Monitor & conditions definition
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
-    @                     enteringWarehouse[i].length == MAX_WEIGHT_IN_WAREHOUSE 
-    @                     &&  (\forall int j;j >=0 && j<= MAX_WEIGHT_IN_WAREHOUSE;
+  /*@ public invariant enteringWarehouse.length == N_WAREHOUSE &&
+    @              (\forall int i; i >=0 && i < N_WAREHOUSE; 
+    @                     enteringWarehouse[i].length == MAX_WEIGHT_IN_WAREHOUSE + 1
+    @                     &&  (\forall int j; j >=0 && j<= MAX_WEIGHT_IN_WAREHOUSE;
     @                            enteringWarehouse[i][j] >= 0)
-    @                  )
-    @                  && enteringWarehouse.length == N_WAREHOUSE;
+    @               );
     @*/
   private /*@ spec_public @*/int enteringWarehouse[][];
       
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
+  /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE; 
     @                                                 exitingWarehouse[i] >= 0)
     @                  && exitingWarehouse.length == N_WAREHOUSE;   
     @*/

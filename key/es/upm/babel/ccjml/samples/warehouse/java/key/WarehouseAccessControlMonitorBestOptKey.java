@@ -15,16 +15,18 @@ public class WarehouseAccessControlMonitorBestOptKey {
 
   //@ ghost int awakenThread;
 
+  //@ public invariant N_ROBOTS > 0;
   public static final int N_ROBOTS = 2;
-  public static final int N_WAREHOUSE = 4;
-  public static final int MAX_WEIGHT_IN_WAREHOUSE = 100;
-  public static final int EMPTY_WEIGHT = 1;
+  //@ public invariant N_WAREHOUSE > 0;
+  public static final int N_WAREHOUSE = 2;
+  //@ public invariant MAX_WEIGHT_IN_WAREHOUSE > 0;
+  public static final int MAX_WEIGHT_IN_WAREHOUSE = 5;
   
   // INNER STATE ATTRIBUTES
-  //@ public invariant corridor.length == N_WAREHOUSE;
+  //@ public invariant corridor.length == N_WAREHOUSE -1;
   private /*@ spec_public @*/ boolean corridor[];
   
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
+  /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE; 
     @                            warehouseCurrentWeight[i] >= 0 && 
     @                            warehouseCurrentWeight[i] <= MAX_WEIGHT_IN_WAREHOUSE)
     @                  && warehouseCurrentWeight.length == N_WAREHOUSE;
@@ -32,13 +34,26 @@ public class WarehouseAccessControlMonitorBestOptKey {
   private /*@ spec_public @*/int warehouseCurrentWeight[];
       
   // Monitor & conditions definition
-  //@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; exitingWarehouse[i] >= 0);     
+  /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE;
+    @                                        exitingWarehouse[i] >= 0)
+    @                  && exitingWarehouse.length == N_WAREHOUSE;
+    @*/
   private /*@ spec_public @*/ int exitingWarehouse[];
   
-  //@ public invariant enteringWarehouseZero.length == N_ROBOTS;  
+  /*@
+    @ public invariant enteringWarehouseZero.length == N_ROBOTS && 
+    @   (\forall int i; i >= 0 && i < N_ROBOTS -1;
+    @              enteringWarehouseZero[i]!= null && 
+    @              enteringWarehouseZero[i].getWeight() > 0 &&
+    @              enteringWarehouseZero[i].getWeight() >= enteringWarehouseZero[i+1].getWeight() )
+    @ ;
+    @*/
   private /*@ spec_public @*/ WeightedCondition enteringWarehouseZero[];
   
-  //@ public invariant enteringWarehouse.length == N_WAREHOUSE;  
+  /*@ public invariant enteringWarehouse.length == N_WAREHOUSE &&
+    @              (\forall int i; i >= 1 && i < N_WAREHOUSE;
+    @                                    enteringWarehouse[i]!= null);
+    @*/
   private /*@ spec_public @*/ WeightedCondition enteringWarehouse[];
 
   //@ public invariant signaled == 0 || signaled == 1;
@@ -46,15 +61,19 @@ public class WarehouseAccessControlMonitorBestOptKey {
 
   //@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
   //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
-  //@ requires warehouse == 0 || !corridor[warehouse-1] ; // VER!!! split? lazy
+  //@ requires warehouse > 0 ==> corridor[warehouse-1] ;
   //@ assignable exitingWarehouse[((warehouse == 0)?0:warehouse-1)];
   //@ assignable enteringWarehouseZero[*];
   //@ diverges false;
     //prop_safe_signal
   /*@ ensures
     @  (\forall int i; i>=0 && i < N_ROBOTS; 
-    @        (enteringWarehouseZero[i].getCondition() + 1 == \old(enteringWarehouse[i]).getCondition() ==> 
-    @                  warehouseCurrentWeight[0] + i <= MAX_WEIGHT_IN_WAREHOUSE))
+    @        (enteringWarehouseZero[i].getCondition() + 1 == \old(enteringWarehouseZero[i]).getCondition() ==> 
+    @                  warehouseCurrentWeight[0] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE))
+    @  &&
+    @  (\forall int i; i>=0 && i < N_ROBOTS; 
+    @        (enteringWarehouse[i].getCondition() + 1 == \old(enteringWarehouse[i]).getCondition() ==> 
+    @                  warehouseCurrentWeight[0] + enteringWarehouse[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE))
     @  &&
     @  (\forall int i; i>=0 && i < N_WAREHOUSE; 
     @        (exitingWarehouse[i] + 1 == \old(exitingWarehouse)[i] 
@@ -156,9 +175,19 @@ public class WarehouseAccessControlMonitorBestOptKey {
       if (enteringWarehouse[warehouse-1].getCondition() > 0 && 
           enteringWarehouse[warehouse-1].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse] ) {
         enteringWarehouse[warehouse-1].signalCondition();
-        //@ assert warehouseCurrentWeight[warehouse-1] + enteringWarehouse[warehouse-1].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE;
+        // @ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE;
       }
     }
   }
 
+  // @ assignable exitingWarehouse[*];
+  // @ assignable enteringWarehouse[N_WAREHOUSE-1][*];
+  // @ assignable enteringWarehouseZero[*];
+  //@ assignable warehouseCurrentWeight[*];
+  public void poorf(){
+    warehouseCurrentWeight[0] = MAX_WEIGHT_IN_WAREHOUSE;
+    // enteringWarehouse[N_WAREHOUSE-1][MAX_WEIGHT_IN_WAREHOUSE] = 1;
+    // enteringWarehouseZero[0].setWeight(MAX_WEIGHT_IN_WAREHOUSE);
+    // exitingWarehouse[0] = N_WAREHOUSE;
+  }
 }

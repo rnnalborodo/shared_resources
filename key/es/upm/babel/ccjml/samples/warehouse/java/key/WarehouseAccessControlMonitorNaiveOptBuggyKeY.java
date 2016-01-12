@@ -7,11 +7,14 @@ package es.upm.babel.ccjml.samples.warehouse.java.key;
  * Naive implementation with optimized unblocking code
  * Parameter indexation for robots entering to warehouse.
  * Parameter indexation for leaving a warehouse n.
+ *
+ * Completeness Bug: an exitWarehouse call might not wake up a robot
+ *                   that is waiting with the maximum weight (ln. 268)
  * 
  * @author Raul Alborodo - BABEL Group - Technical University of Madrid
  */
 
-public class WarehouseAccessControlMonitorNaiveOptKeY {
+public class WarehouseAccessControlMonitorNaiveOptBuggyKeY {
   
   //@ ghost int awakenThreadC;
   //@ ghost int awakenThreadR;
@@ -26,7 +29,7 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
   //@ public invariant corridor.length == N_WAREHOUSE - 1;
   private /*@ spec_public @*/ boolean corridor[];
   
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
+  /*@ public invariant (\forall int i; i >=0 && i < N_WAREHOUSE; 
     @                            warehouseCurrentWeight[i] >= 0 && 
     @                            warehouseCurrentWeight[i] <= MAX_WEIGHT_IN_WAREHOUSE)
     @                  && warehouseCurrentWeight.length == N_WAREHOUSE;
@@ -34,16 +37,16 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
   private /*@ spec_public @*/int warehouseCurrentWeight[];
       
   // Monitor & conditions definition
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
-    @                     enteringWarehouse[i].length == MAX_WEIGHT_IN_WAREHOUSE 
-    @                     &&  (\forall int j;j >=0 && j< MAX_WEIGHT_IN_WAREHOUSE;
+  /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE; 
+    @                     enteringWarehouse[i].length == MAX_WEIGHT_IN_WAREHOUSE + 1 
+    @                     &&  (\forall int j;j >=0 && j<= MAX_WEIGHT_IN_WAREHOUSE;
     @                            enteringWarehouse[i][j] >= 0)
     @                  )
     @                  && enteringWarehouse.length == N_WAREHOUSE;
     @*/
   private /*@ spec_public @*/int enteringWarehouse[][];
       
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
+  /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE; 
     @                                                 exitingWarehouse[i] >= 0)
     @                  && exitingWarehouse.length == N_WAREHOUSE;   
     @*/
@@ -248,7 +251,7 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
     @    signaled == 1
     @  ;
     @*/
-  private void unblockingCodeExitWarehouse(int warehouse, int weight) {
+  private void exitWarehouseUnblockingCode(int warehouse, int weight) {
     signaled = 0;
     //@ set awakenThreadC = -1;
     // unblocking code 
@@ -262,6 +265,7 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
         @ assignable enteringWarehouse[wid][*];
         @ decreases availableWeight - currentWeight;
         @*/  
+      // should iterate up to availableWeight
       for (int currentWeight = 1; currentWeight < availableWeight && signaled == 0; currentWeight++){
         if (enteringWarehouse[wid][currentWeight] > 0 ){
             enteringWarehouse[wid][currentWeight]--;
@@ -270,6 +274,5 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
         }
       }
     }
-  }     
-
+  } 
 }

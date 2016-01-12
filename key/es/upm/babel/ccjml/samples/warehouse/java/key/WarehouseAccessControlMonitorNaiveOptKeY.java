@@ -26,7 +26,7 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
   //@ public invariant corridor.length == N_WAREHOUSE - 1;
   private /*@ spec_public @*/ boolean corridor[];
   
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
+  /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE; 
     @                            warehouseCurrentWeight[i] >= 0 && 
     @                            warehouseCurrentWeight[i] <= MAX_WEIGHT_IN_WAREHOUSE)
     @                  && warehouseCurrentWeight.length == N_WAREHOUSE;
@@ -34,16 +34,16 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
   private /*@ spec_public @*/int warehouseCurrentWeight[];
       
   // Monitor & conditions definition
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
-    @                     enteringWarehouse[i].length == MAX_WEIGHT_IN_WAREHOUSE 
-    @                     &&  (\forall int j;j >=0 && j< MAX_WEIGHT_IN_WAREHOUSE;
+  /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE; 
+    @                     enteringWarehouse[i].length == MAX_WEIGHT_IN_WAREHOUSE + 1
+    @                     &&  (\forall int j;j >=0 && j<= MAX_WEIGHT_IN_WAREHOUSE;
     @                            enteringWarehouse[i][j] >= 0)
     @                  )
     @                  && enteringWarehouse.length == N_WAREHOUSE;
     @*/
   private /*@ spec_public @*/int enteringWarehouse[][];
       
-  /*@ public invariant (\forall int i; i >=0 && i<= N_WAREHOUSE; 
+  /*@ public invariant (\forall int i; i >=0 && i< N_WAREHOUSE; 
     @                                                 exitingWarehouse[i] >= 0)
     @                  && exitingWarehouse.length == N_WAREHOUSE;   
     @*/
@@ -62,7 +62,7 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
   /*@ ensures
     @  (\forall int j; j>=0 && j < N_WAREHOUSE;
     @    (\forall int i; i>=0 && i < MAX_WEIGHT_IN_WAREHOUSE + 1; 
-    @        (enteringWarehouse[j][i] + 1 == \old(enteringWarehouse)[j][i] ==> 
+    @        (enteringWarehouse[j][i] + 1 == \old(enteringWarehouse[j][i]) ==> 
     @                  warehouseCurrentWeight[j] + i <= MAX_WEIGHT_IN_WAREHOUSE)
     @    )
     @  )
@@ -248,7 +248,7 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
     @    signaled == 1
     @  ;
     @*/
-  private void unblockingCodeExitWarehouse(int warehouse, int weight) {
+  private void exitWarehouseWnblockingCode(int warehouse, int weight) {
     signaled = 0;
     //@ set awakenThreadC = -1;
     // unblocking code 
@@ -265,11 +265,12 @@ public class WarehouseAccessControlMonitorNaiveOptKeY {
       for (int currentWeight = 1; currentWeight <= availableWeight && signaled == 0; currentWeight++){
         if (enteringWarehouse[wid][currentWeight] > 0 ){
             enteringWarehouse[wid][currentWeight]--;
-            //@ assert warehouseCurrentWeight[wid] + currentWeight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
+            //@ set awakenThreadC = wid;
+            //@ set awakenThreadR = currentWeight;
+            //@ assert warehouseCurrentWeight[wid] + currentWeight <= MAX_WEIGHT_IN_WAREHOUSE;
             signaled ++;
         }
       }
     }
-  }     
-
+  }  
 }
