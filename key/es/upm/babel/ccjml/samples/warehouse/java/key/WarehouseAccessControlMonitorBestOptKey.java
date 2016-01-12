@@ -62,42 +62,52 @@ public class WarehouseAccessControlMonitorBestOptKey {
   //@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
   //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
   //@ requires warehouse > 0 ==> corridor[warehouse-1] ;
-  //@ assignable exitingWarehouse[((warehouse == 0)?0:warehouse-1)];
+  //@ assignable exitingWarehouse[*];
   //@ assignable enteringWarehouseZero[*];
+  //@ assignable enteringWarehouse[*];
   //@ diverges false;
-    //prop_safe_signal
+  //prop_safe_signal
   /*@ ensures
     @  (\forall int i; i>=0 && i < N_ROBOTS; 
     @        (enteringWarehouseZero[i].getCondition() + 1 == \old(enteringWarehouseZero[i]).getCondition() ==> 
-    @                  warehouseCurrentWeight[0] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE))
-    @  &&
-    @  (\forall int i; i>=0 && i < N_ROBOTS; 
-    @        (enteringWarehouse[i].getCondition() + 1 == \old(enteringWarehouse[i]).getCondition() ==> 
-    @                  warehouseCurrentWeight[0] + enteringWarehouse[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE))
+    @                  warehouseCurrentWeight[i] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE))
     @  &&
     @  (\forall int i; i>=0 && i < N_WAREHOUSE; 
-    @        (exitingWarehouse[i] + 1 == \old(exitingWarehouse)[i] 
+    @        (enteringWarehouse[i].getCondition() + 1 == \old(enteringWarehouse[i]).getCondition() ==> 
+    @                  warehouseCurrentWeight[i] + enteringWarehouse[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE))
+    @  &&
+    @  (\forall int i; i>=0 && i < N_WAREHOUSE; 
+    @        (exitingWarehouse[i] + 1 == \old(exitingWarehouse[i])
     @                  ==> i+1 != N_WAREHOUSE -1 && corridor[i])
     @  );
     @*/
   // prop_signal_0_1
   /*@ ensures 
-    @    (\forall int i; i>=0 && i < N_ROBOTS; i != N_WAREHOUSE - awakenThread ==>
+    @    (\forall int i; i>=0 && i < N_ROBOTS; i != awakenThread ==>
     @                   (enteringWarehouseZero[i].getCondition() == 
     @                        \old(enteringWarehouseZero[i]).getCondition())
     @    )
     @    &&
-    @    (\forall int i; i>=0 && i < N_WAREHOUSE; 
-    @                   exitingWarehouse[i] == \old(exitingWarehouse)[i]
+    @    (\forall int i; i>=0 && i < N_WAREHOUSE; i != N_WAREHOUSE - awakenThread ==>
+    @                   (enteringWarehouse[i].getCondition() == 
+    @                        \old(enteringWarehouse[i]).getCondition())
+    @    )
+    @    &&
+    @    (\forall int i; i>=0 && i < N_WAREHOUSE; i != N_WAREHOUSE*2 - awakenThread ==>
+    @                   exitingWarehouse[i] == \old(exitingWarehouse[i])
     @    ) 
     @  && 
     @  ( awakenThread != -1 ==> (
+    @    (awakenThread > 2 * N_WAREHOUSE ==> exitingWarehouse[2 * N_WAREHOUSE - awakenThread] + 1
+    @                                   == \old(exitingWarehouse)[2 * N_WAREHOUSE - awakenThread])
+    @    ) ||
     @    ( awakenThread > N_WAREHOUSE ==> 
-    @        (enteringWarehouseZero[N_WAREHOUSE - awakenThread].getCondition() + 1 
+    @        (enteringWarehouse[N_WAREHOUSE - awakenThread].getCondition() + 1 
     @          == \old(enteringWarehouse[N_WAREHOUSE - awakenThread]).getCondition())
     @    ) ||
-    @    (awakenThread <= N_WAREHOUSE ==> exitingWarehouse[awakenThread] + 1
-    @                                   == \old(exitingWarehouse)[awakenThread])
+    @    ( awakenThread <= N_WAREHOUSE ==> 
+    @        (enteringWarehouseZero[awakenThread].getCondition() + 1 
+    @          == \old(enteringWarehouse[awakenThread]).getCondition())
     @    )
     @  )
     @  ;
@@ -107,21 +117,27 @@ public class WarehouseAccessControlMonitorBestOptKey {
     @  signaled == 1
     @  ==>
     @  (
-    @     enteringWarehouseZero[N_WAREHOUSE - awakenThread].getCondition() + 1 ==
-    @           \old(enteringWarehouseZero[N_WAREHOUSE - awakenThread]).getCondition() ||
-    @     exitingWarehouse[awakenThread] + 1== \old(exitingWarehouse)[awakenThread]
+    @     enteringWarehouseZero[awakenThread].getCondition() + 1 ==
+    @           \old(enteringWarehouseZero[awakenThread]).getCondition() ||
+    @     enteringWarehouse[N_WAREHOUSE - awakenThread].getCondition() + 1 ==
+    @           \old(enteringWarehouse[N_WAREHOUSE - awakenThread]).getCondition() ||
+    @     exitingWarehouse[2*N_WAREHOUSE - awakenThread] + 1== \old(exitingWarehouse[2*N_WAREHOUSE - awakenThread])
     @  );
     @*/
   // prop_liveness
   /*@ ensures
     @  ( awakenThread != -1 && 
+    @      (awakenThread > 2*N_WAREHOUSE ==> 
+    @         (\old(exitingWarehouse)[2*N_WAREHOUSE - awakenThread] > 0 && 
+    @                 2*N_WAREHOUSE - awakenThread + 1 != N_WAREHOUSE -1 && corridor[2*N_WAREHOUSE - awakenThread])
+    @      ) && 
     @      (awakenThread > N_WAREHOUSE ==> 
-    @         (\old(enteringWarehouseZero[N_WAREHOUSE - awakenThread]).getCondition() > 0
-    @         && warehouseCurrentWeight[0] + enteringWarehouseZero[N_WAREHOUSE - awakenThread].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE)
+    @         (\old(enteringWarehouse[N_WAREHOUSE - awakenThread]).getCondition() > 0
+    @         && warehouseCurrentWeight[N_WAREHOUSE - awakenThread] + enteringWarehouse[N_WAREHOUSE - awakenThread].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE)
     @      ) && 
     @      (awakenThread <= N_WAREHOUSE ==>
-    @         (\old(exitingWarehouse)[awakenThread] > 0 && 
-    @                 awakenThread + 1 != N_WAREHOUSE -1 && corridor[awakenThread])
+    @         (\old(enteringWarehouseZero[awakenThread]).getCondition() > 0
+    @         && warehouseCurrentWeight[awakenThread] + enteringWarehouseZero[awakenThread].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE)
     @      )
     @  ) ==>
     @    signaled == 1
@@ -139,7 +155,7 @@ public class WarehouseAccessControlMonitorBestOptKey {
           enteringWarehouseZero[i].signalCondition();
           //@ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
           signaled ++;
-          //@set awakenThread = N_WAREHOUSE + i;
+          //@set awakenThread = i;
           break;
         }
       }
@@ -148,16 +164,97 @@ public class WarehouseAccessControlMonitorBestOptKey {
       if (exitingWarehouse[warehouse-1] > 0)
         exitingWarehouse[warehouse-1]--;
         signaled ++;
-        //@set awakenThread = warehouse -1;
+        //@set awakenThread = N_WAREHOUSE * warehouse -1;
 
     }
   }
   
   //@ requires warehouse >=0 && warehouse <= N_WAREHOUSE;
   //@ requires weight >=0 && weight <= MAX_WEIGHT_IN_WAREHOUSE;
+  //@ requires warehouse > 0 ==> corridor[warehouse]; // derived from POST
   //@ assignable enteringWarehouse[((warehouse == 0)?0:warehouse-1)];
   //@ assignable enteringWarehouseZero[*];
   //@ diverges false;
+  //@ assignable exitingWarehouse[*];
+  //@ assignable enteringWarehouseZero[*];
+  //@ assignable enteringWarehouse[*];
+  //prop_safe_signal
+  /*@ ensures
+    @  (\forall int i; i>=0 && i < N_ROBOTS; 
+    @        (enteringWarehouseZero[i].getCondition() + 1 == \old(enteringWarehouseZero[i]).getCondition() ==> 
+    @                  warehouseCurrentWeight[i] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE))
+    @  &&
+    @  (\forall int i; i>=0 && i < N_WAREHOUSE; 
+    @        (enteringWarehouse[i].getCondition() + 1 == \old(enteringWarehouse[i]).getCondition() ==> 
+    @                  warehouseCurrentWeight[i] + enteringWarehouse[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE))
+    @  &&
+    @  (\forall int i; i>=0 && i < N_WAREHOUSE; 
+    @        (exitingWarehouse[i] + 1 == \old(exitingWarehouse[i])
+    @                  ==> i+1 != N_WAREHOUSE -1 && corridor[i])
+    @  );
+    @*/
+  // prop_signal_0_1
+  /*@ ensures 
+    @    (\forall int i; i>=0 && i < N_ROBOTS; i != awakenThread ==>
+    @                   (enteringWarehouseZero[i].getCondition() == 
+    @                        \old(enteringWarehouseZero[i]).getCondition())
+    @    )
+    @    &&
+    @    (\forall int i; i>=0 && i < N_WAREHOUSE; i != N_WAREHOUSE - awakenThread ==>
+    @                   (enteringWarehouse[i].getCondition() == 
+    @                        \old(enteringWarehouse[i]).getCondition())
+    @    )
+    @    &&
+    @    (\forall int i; i>=0 && i < N_WAREHOUSE; i != N_WAREHOUSE*2 - awakenThread ==>
+    @                   exitingWarehouse[i] == \old(exitingWarehouse[i])
+    @    ) 
+    @  && 
+    @  ( awakenThread != -1 ==> (
+    @    (awakenThread > 2 * N_WAREHOUSE ==> exitingWarehouse[2 * N_WAREHOUSE - awakenThread] + 1
+    @                                   == \old(exitingWarehouse)[2 * N_WAREHOUSE - awakenThread])
+    @    ) ||
+    @    ( awakenThread > N_WAREHOUSE ==> 
+    @        (enteringWarehouse[N_WAREHOUSE - awakenThread].getCondition() + 1 
+    @          == \old(enteringWarehouse[N_WAREHOUSE - awakenThread]).getCondition())
+    @    ) ||
+    @    ( awakenThread <= N_WAREHOUSE ==> 
+    @        (enteringWarehouseZero[awakenThread].getCondition() + 1 
+    @          == \old(enteringWarehouse[awakenThread]).getCondition())
+    @    )
+    @  )
+    @  ;
+    @*/
+  // prop_signal_effective
+  /*@ ensures
+    @  signaled == 1
+    @  ==>
+    @  (
+    @     enteringWarehouseZero[awakenThread].getCondition() + 1 ==
+    @           \old(enteringWarehouseZero[awakenThread]).getCondition() ||
+    @     enteringWarehouse[N_WAREHOUSE - awakenThread].getCondition() + 1 ==
+    @           \old(enteringWarehouse[N_WAREHOUSE - awakenThread]).getCondition() ||
+    @     exitingWarehouse[2*N_WAREHOUSE - awakenThread] + 1== \old(exitingWarehouse[2*N_WAREHOUSE - awakenThread])
+    @  );
+    @*/
+  // prop_liveness
+  /*@ ensures
+    @  ( awakenThread != -1 && 
+    @      (awakenThread > 2*N_WAREHOUSE ==> 
+    @         (\old(exitingWarehouse)[2*N_WAREHOUSE - awakenThread] > 0 && 
+    @                 2*N_WAREHOUSE - awakenThread + 1 != N_WAREHOUSE -1 && corridor[2*N_WAREHOUSE - awakenThread])
+    @      ) && 
+    @      (awakenThread > N_WAREHOUSE ==> 
+    @         (\old(enteringWarehouse[N_WAREHOUSE - awakenThread]).getCondition() > 0
+    @         && warehouseCurrentWeight[N_WAREHOUSE - awakenThread] + enteringWarehouse[N_WAREHOUSE - awakenThread].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE)
+    @      ) && 
+    @      (awakenThread <= N_WAREHOUSE ==>
+    @         (\old(enteringWarehouseZero[awakenThread]).getCondition() > 0
+    @         && warehouseCurrentWeight[awakenThread] + enteringWarehouseZero[awakenThread].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE)
+    @      )
+    @  ) ==>
+    @    signaled == 1
+    @  ;
+    @*/
   public void unblockingCodeExitWarehouse(int warehouse, int weight) {
     // unblocking code 
     signaled = 0;
