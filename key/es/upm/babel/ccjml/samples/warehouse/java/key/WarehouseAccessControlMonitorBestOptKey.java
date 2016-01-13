@@ -45,7 +45,7 @@ public class WarehouseAccessControlMonitorBestOptKey {
     @   (\forall int i; i >= 0 && i < N_ROBOTS -1;
     @              enteringWarehouseZero[i]!= null && 
     @              enteringWarehouseZero[i].getWeight() > 0 &&
-    @              enteringWarehouseZero[i].getWeight() >= enteringWarehouseZero[i+1].getWeight() )
+    @              enteringWarehouseZero[i].getWeight() <= enteringWarehouseZero[i+1].getWeight() )
     @ ;
     @*/
   private /*@ spec_public @*/ WeightedCondition enteringWarehouseZero[];
@@ -148,6 +148,13 @@ public class WarehouseAccessControlMonitorBestOptKey {
     signaled = 0;
     //@ set awakenThread = -1;
     if (warehouse ==  0){
+      /*@ loop_invariant 
+        @    ((i>= 1 && i<= enteringWarehouseZero.length + 1) || signaled == 1) && 
+        @         (\forall int k; k >= 1 && k < i; signaled == 0 ==> enteringWarehouseZero[k].getCondition() == 0) &&
+        @         (awakenThread != -1 ==> signaled == 1);
+        @ assignable enteringWarehouseZero[*];
+        @ decreases enteringWarehouseZero.length + 1 - i;
+        @*/
       // if there are pending robots waiting for entering warehouse 0
       for (int i =0; i< enteringWarehouseZero.length && signaled == 0; i++){
         if (enteringWarehouseZero[i].getCondition() > 0 && 
@@ -156,16 +163,15 @@ public class WarehouseAccessControlMonitorBestOptKey {
           //@ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
           signaled ++;
           //@set awakenThread = i;
-          break;
         }
       }
     } else { // warehouse n > 0
       // if there is a robot waiting to exit to a corridor 'warehouse', wake it up
-      if (exitingWarehouse[warehouse-1] > 0)
+      if (exitingWarehouse[warehouse-1] > 0){
         exitingWarehouse[warehouse-1]--;
         signaled ++;
         //@set awakenThread = N_WAREHOUSE * warehouse -1;
-
+      }
     }
   }
   
@@ -260,11 +266,21 @@ public class WarehouseAccessControlMonitorBestOptKey {
     signaled = 0;
     //@ set awakenThread = -1;
     if (warehouse == 0) {
-      for (int i =0; i< enteringWarehouseZero.length && signaled == 0; i++){
+      /*@ loop_invariant 
+        @    ((i>= 1 && i<= enteringWarehouseZero.length + 1) || signaled == 1) && 
+        @         (\forall int k; k >= 1 && k < i; signaled == 0 ==> enteringWarehouseZero[k].getCondition() == 0) &&
+        @         (awakenThread != -1 ==> signaled == 1);
+        @ assignable enteringWarehouseZero[*];
+        @ decreases enteringWarehouseZero.length + 1 - i;
+        @*/
+      for (int i =0; i < enteringWarehouseZero.length && signaled == 0; i++){
         if (enteringWarehouseZero[i].getCondition() > 0 && 
             enteringWarehouseZero[i].getWeight() <=  MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse]){
           enteringWarehouseZero[i].signalCondition();
           //@ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE;
+          //@ set awakenThread = i;
+          signaled++;
+        } else if (enteringWarehouseZero[i].getWeight() >  MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse])){
           break;
         }
       }
@@ -272,19 +288,10 @@ public class WarehouseAccessControlMonitorBestOptKey {
       if (enteringWarehouse[warehouse-1].getCondition() > 0 && 
           enteringWarehouse[warehouse-1].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse] ) {
         enteringWarehouse[warehouse-1].signalCondition();
-        // @ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE;
+        //@ assert warehouseCurrentWeight[warehouse] + enteringWarehouse[warehouse -1].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE;
+        //@ set awakenThread = N_WAREHOUSE + warehouse-1;
+        signaled++; 
       }
     }
-  }
-
-  // @ assignable exitingWarehouse[*];
-  // @ assignable enteringWarehouse[N_WAREHOUSE-1][*];
-  // @ assignable enteringWarehouseZero[*];
-  //@ assignable warehouseCurrentWeight[*];
-  public void poorf(){
-    warehouseCurrentWeight[0] = MAX_WEIGHT_IN_WAREHOUSE;
-    // enteringWarehouse[N_WAREHOUSE-1][MAX_WEIGHT_IN_WAREHOUSE] = 1;
-    // enteringWarehouseZero[0].setWeight(MAX_WEIGHT_IN_WAREHOUSE);
-    // exitingWarehouse[0] = N_WAREHOUSE;
   }
 }

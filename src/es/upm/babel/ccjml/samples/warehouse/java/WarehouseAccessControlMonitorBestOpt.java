@@ -157,11 +157,11 @@ public class WarehouseAccessControlMonitorBestOpt implements WarehouseAccessCont
           break;
         }
 			}
-		} else { // is there any robot in corridor (warehouse-1)?
+		} else { // is there any robot in corridor (warehouse-1) waiting to enter?
 			if (enteringWarehouse[warehouse-1].getCondition().waiting() > 0 && 
 			    enteringWarehouse[warehouse-1].getWeight() <= Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse] ) {
 				enteringWarehouse[warehouse-1].getCondition().signal();
-        //@ assert warehouseCurrentWeight[warehouse-1] + enteringWarehouse[warehouse-1].getWeight() <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
+        //@ assert warehouseCurrentWeight[warehouse] + enteringWarehouse[warehouse-1].getWeight() <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
 			}
 		}
 		
