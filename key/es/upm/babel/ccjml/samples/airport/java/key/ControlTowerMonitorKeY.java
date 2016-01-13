@@ -1,8 +1,9 @@
 package es.upm.babel.ccjml.samples.airport.java.key;
 
-/** ControlTower implementation using locks and conditions. 
+/** 
+ * ControlTower (instrumented) implementation using Priority Monitors
  * 
- * @author Babel Group
+ * @author BABEL Group - Technical University of Madrid
  */ 
 public class ControlTowerMonitorKeY {
 

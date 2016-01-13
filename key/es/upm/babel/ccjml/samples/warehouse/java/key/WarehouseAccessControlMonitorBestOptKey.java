@@ -280,7 +280,7 @@ public class WarehouseAccessControlMonitorBestOptKey {
           //@ assert warehouseCurrentWeight[warehouse] + enteringWarehouseZero[i].getWeight() <= MAX_WEIGHT_IN_WAREHOUSE;
           //@ set awakenThread = i;
           signaled++;
-        } else if (enteringWarehouseZero[i].getWeight() >  MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse])){
+        } else if (enteringWarehouseZero[i].getWeight() >  MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse]){
           break;
         }
       }

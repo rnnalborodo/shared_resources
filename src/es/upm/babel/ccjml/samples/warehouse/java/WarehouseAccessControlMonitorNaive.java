@@ -15,7 +15,7 @@ import es.upm.babel.cclib.Monitor.Cond;
  * @author BABEL Group - Technical University of Madrid
  */
 
-public class WarehouseAccessControlMonitor implements WarehouseAccessControl {
+public class WarehouseAccessControlMonitorNaive implements WarehouseAccessControl {
   
   // INNER STATE ATTRIBUTES
   /**
@@ -54,7 +54,7 @@ public class WarehouseAccessControlMonitor implements WarehouseAccessControl {
   /** 
    * constructor
    */
-	public WarehouseAccessControlMonitor() {
+	public WarehouseAccessControlMonitorNaive() {
 	  // initilizing the inner state of the shared resource
 	  warehouseCurrentWeight = new int[Robots.N_WAREHOUSE];
     corridor = new boolean[Robots.N_WAREHOUSE-1];

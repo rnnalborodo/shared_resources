@@ -4,20 +4,16 @@ import es.upm.babel.cclib.Monitor;
 import es.upm.babel.cclib.Monitor.Cond;
 
 /** 
- * WarehouseAccessControl implementation using Babel Priority Monitors.
+ * WarehouseAccessControl implementation using Priority Monitors library.
  * 
- * Naive implementation
+ * Naive implementation with optimized unblocking code
  * Parameter indexation for robots entering to warehouse.
  * Parameter indexation for leaving a warehouse n.
  * 
- * Completeness Bug: an exitWarehouse call might not wake up a robot
- *                   that is waiting with the maximum weight
- *                   (see line 124)
- *
- * @author BABEL Group - Technical University of Madrid
+ * @author Raul Alborodo - BABEL - Technical University of Madrid
  */
 
-public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessControl {
+public class WarehouseAccessControlMonitorOpt implements WarehouseAccessControl {
   
   // INNER STATE ATTRIBUTES
   /**
@@ -47,10 +43,12 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
    */
   private Cond exitingWarehouse[];
 
+  // keeps count of signal() invocations
+  private int signaled;
   /** 
    * constructor
    */
-	public WarehouseAccessControlMonitorNaiveOpt() {
+	public WarehouseAccessControlMonitorOpt() {
 	  warehouseCurrentWeight = new int[Robots.N_WAREHOUSE];
     corridor = new boolean[Robots.N_WAREHOUSE-1];
 	  
@@ -81,21 +79,26 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
     // updating warehouse current weight
     warehouseCurrentWeight[warehouse] += weight;
 
+    // unblocking code
+    // trying to wake up enterWarehouse calls
 		if (warehouse == 0){
+      // only enterWarehouse 0 can be awakened
   	  int availableWeight = Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[warehouse];
   	  if (availableWeight > 0) {
-    		for (int currentWeight = 1; currentWeight <= availableWeight; currentWeight++){
+    		for (int currentWeight = 1; currentWeight <= availableWeight && signaled == 0; currentWeight++){
     			if (enteringWarehouse[warehouse][currentWeight].waiting() > 0 ){
     				  enteringWarehouse[warehouse][currentWeight].signal();
     			    //@ assert warehouseCurrentWeight[warehouse] + currentWeight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
-    				  break;
+              signaled++;
     			}
     		}
   	  }
-		} else { // exiting could perform iff a robot enter to any warehouse but the first 
-			if (exitingWarehouse[warehouse-1].waiting() > 0 && corridor[warehouse-1]){
+		} else { // warehouse > 0
+      // exiting could perform iff a robot enter to any warehouse but the first 
+			if (exitingWarehouse[warehouse-1].waiting() > 0){
 				exitingWarehouse[warehouse-1].signal();
-		   //@ assert warehouse == Robots.N_WAREHOUSE -1 || corridor[warehouse-1];
+        signaled ++;
+		   //@ assert warehouse -1  == Robots.N_WAREHOUSE -1 || !corridor[warehouse-1];
 			}
 		}
 
@@ -108,7 +111,7 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
 		if (warehouse != Robots.N_WAREHOUSE -1 && corridor[warehouse]) 	
 			exitingWarehouse[warehouse].await(); 
 
-		//@ assert warehouse == Robots.N_WAREHOUSE -1 || corridor[warehouse];
+		//@ assert warehouse == Robots.N_WAREHOUSE -1 || !corridor[warehouse];
     
     // updating the current weight of the warehouse
     warehouseCurrentWeight[warehouse] -= weight;
@@ -118,11 +121,15 @@ public class WarehouseAccessControlMonitorNaiveOpt implements WarehouseAccessCon
       corridor[warehouse] = true;
 
     int signaled = 0;
-    int wid = (warehouse == 0)?0:warehouse-1;
+    /*
+     * a robot could enter to warehouse -1
+     * or another robot could enter to warehouse 0 
+     */
+		int wid = (warehouse == 0)?0:warehouse-1;
+    
     int availableWeight = Robots.MAX_WEIGHT_IN_WAREHOUSE - warehouseCurrentWeight[wid];
     if (availableWeight > 0) {
-      // should iterate until currentWeight < availableWeight
-      for (int currentWeight = 1; currentWeight < availableWeight && signaled == 0; currentWeight++){
+      for (int currentWeight = 1; currentWeight <= availableWeight && signaled == 0; currentWeight++){
         if (enteringWarehouse[wid][currentWeight].waiting() > 0 ){
             enteringWarehouse[wid][currentWeight].signal();
             //@ assert warehouseCurrentWeight[wid] + currentWeight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;

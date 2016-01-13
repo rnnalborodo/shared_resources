@@ -11,7 +11,7 @@ package es.upm.babel.ccjml.samples.warehouse.java.key;
  * @author BABEL Group - Technical University of Madrid
  */
 
-public class WarehouseAccessControlMonitorKeY {
+public class WarehouseAccessControlMonitorNaiveKeY {
   
   //@ ghost int awakenThreadC;
   //@ ghost int awakenThreadR;
