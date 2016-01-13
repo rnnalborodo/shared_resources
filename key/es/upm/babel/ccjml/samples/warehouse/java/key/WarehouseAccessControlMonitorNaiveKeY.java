@@ -53,8 +53,8 @@ public class WarehouseAccessControlMonitorNaiveKeY {
   //@ public invariant signaled == 0 || signaled == 1;
   private /*@ spec_public @*/ int signaled;
 
-  //@ assignable enteringWarehouse[*]; 
-  //@ assignable exitingWarehouse[*];
+  //@ assignable enteringWarehouse[*],exitingWarehouse[*]; 
+  //@ assignable awakenThread,signaled;
   //@ diverges false;
   //prop_safe_signal
   /*@ ensures
