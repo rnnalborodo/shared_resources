@@ -16,7 +16,7 @@ import org.jcsp.lang.One2OneChannel;
  *
  * @author BABEL Group
  */
-public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSProcess {
+public class MultibufferCSPDeferredRequests extends AMultibuffer implements CSProcess {
 
   /** WRAPPER IMPLEMENTATION */      
   /**
@@ -34,7 +34,7 @@ public class MultibufferCSPDeferredRequest extends AMultibuffer implements CSPro
   //@ public normal_behaviour
   //@ ensures \result == maxData > 0 && data.length() <= maxData;
   //@ public model pure boolean invariant();  
-  public MultibufferCSPDeferredRequest(int _max) {
+  public MultibufferCSPDeferredRequests(int _max) {
     MAX = _max;
     buffer = new Object[_max];
     first =0;

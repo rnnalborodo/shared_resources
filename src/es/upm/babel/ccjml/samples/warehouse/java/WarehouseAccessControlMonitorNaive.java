@@ -24,7 +24,7 @@ public class WarehouseAccessControlMonitorNaive implements WarehouseAccessContro
    *  
    *  true -> a robot is present
    */
-  private boolean corridor[];
+  private boolean occupied[];
   /**
    *  Represents the current weight of all warehouses. All values must be 
    *  equal or less than Robots.MAX_WEIGHT_IN_WAREHOUSE.
@@ -32,7 +32,7 @@ public class WarehouseAccessControlMonitorNaive implements WarehouseAccessContro
    *    warehouse0 is follow by corridor 0
    *    w0 - c0 - w1 - c1 - w2
    */
-  private int warehouseCurrentWeight[];
+  private int weight[];
       
   // MONITOR AND CONDITIONS
   private Monitor mutex;
@@ -56,8 +56,8 @@ public class WarehouseAccessControlMonitorNaive implements WarehouseAccessContro
    */
 	public WarehouseAccessControlMonitorNaive() {
 	  // initilizing the inner state of the shared resource
-	  warehouseCurrentWeight = new int[Robots.N_WAREHOUSE];
-    corridor = new boolean[Robots.N_WAREHOUSE-1];
+	  weight = new int[Robots.N_WAREHOUSE];
+    occupied = new boolean[Robots.N_WAREHOUSE-1];
 	  
     // initilizing synchronization mechanism
 		mutex = new Monitor();
@@ -77,20 +77,20 @@ public class WarehouseAccessControlMonitorNaive implements WarehouseAccessContro
 		
 	}
 
-	public void enterWarehouse(int warehouse, int weight) {
+	public void enterWarehouse(int n, int w) {
 		mutex.enter();
 		// only enter those robots that does not exceed maximum weight
-		if (warehouseCurrentWeight[warehouse] + weight > Robots.MAX_WEIGHT_IN_WAREHOUSE) {
-			enteringWarehouse[warehouse][weight].await();
+		if (weight[n] + w > Robots.MAX_WEIGHT_IN_WAREHOUSE) {
+			enteringWarehouse[n][w].await();
 		}
 		
 	  //@ assert warehouseCurrentWeight[warehouse] + weight <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
 		
 		//updating the corridor if we are not exiting the last warehouse
-    if (warehouse != 0)
-      corridor[warehouse-1] = false;
+    if (n != 0)
+      occupied[n-1] = false;
     // updating warehouse current weight
-		warehouseCurrentWeight[warehouse] += weight;
+		weight[n] += w;
 
 		// unblocking code
 		dummyUnblockingCode();
@@ -98,20 +98,20 @@ public class WarehouseAccessControlMonitorNaive implements WarehouseAccessContro
 		mutex.leave();
 	}
 	
-	public void exitWarehouse(int warehouse, int weight) {
+	public void exitWarehouse(int n, int w) {
 		mutex.enter();
 
-		if (warehouse != Robots.N_WAREHOUSE -1 && corridor[warehouse]) 	
-			exitingWarehouse[warehouse].await(); 
+		if (n != Robots.N_WAREHOUSE -1 && occupied[n]) 	
+			exitingWarehouse[n].await(); 
 
 		//@ assert warehouse == Robots.N_WAREHOUSE -1 || !corridor[warehouse];
 		
 		// updating the current weight of the warehouse
-		warehouseCurrentWeight[warehouse] -= weight;
+		weight[n] -= w;
 		
 		// updating the leaving corridor iff the robot exits any inner warehouse
-		if ( warehouse != Robots.N_WAREHOUSE -1 )
-			corridor[warehouse] = true;
+		if ( n != Robots.N_WAREHOUSE -1 )
+			occupied[n] = true;
 
     // unblocking code
     dummyUnblockingCode();
@@ -129,7 +129,7 @@ public class WarehouseAccessControlMonitorNaive implements WarehouseAccessContro
       // and for each possible weight...
       for (int j = 0; j < Robots.MAX_WEIGHT_IN_WAREHOUSE + 1 && signaled == 0; j++) {
         // we seek for an illegally blocked thread (0 could not be considered)
-        if ( warehouseCurrentWeight[i] + j <= Robots.MAX_WEIGHT_IN_WAREHOUSE //cpreEnter
+        if ( weight[i] + j <= Robots.MAX_WEIGHT_IN_WAREHOUSE //cpreEnter
             && enteringWarehouse[i][j].waiting() > 0) {
           enteringWarehouse[i][j].signal();
           //@ assert warehouseCurrentWeight[i] + j <= Robots.MAX_WEIGHT_IN_WAREHOUSE;
@@ -142,7 +142,7 @@ public class WarehouseAccessControlMonitorNaive implements WarehouseAccessContro
     // for each warehouse...
     for (int i = 0; i < Robots.N_WAREHOUSE && signaled == 0; i++) {
       // we seek for an illegally blocked robot that could exit a warehouse
-      if ( (i == Robots.N_WAREHOUSE -1 || corridor[i]) && exitingWarehouse[i].waiting() > 0) {
+      if ( (i == Robots.N_WAREHOUSE -1 || occupied[i]) && exitingWarehouse[i].waiting() > 0) {
         exitingWarehouse[i].signal();
         //@ assert i == Robots.N_WAREHOUSE -1 || !corridor[i];
         signaled++;

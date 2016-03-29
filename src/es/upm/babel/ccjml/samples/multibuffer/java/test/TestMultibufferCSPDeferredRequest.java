@@ -4,12 +4,12 @@ import org.jcsp.lang.ProcessManager;
 import org.junit.After;
 import org.junit.Before;
 
-import es.upm.babel.ccjml.samples.multibuffer.java.MultibufferCSPDeferredRequest;
+import es.upm.babel.ccjml.samples.multibuffer.java.MultibufferCSPDeferredRequests;
 
 public class TestMultibufferCSPDeferredRequest extends TestMultibuffer {
 
   @Before public void setUp() {
-    MultibufferCSPDeferredRequest multiJCSP = new MultibufferCSPDeferredRequest(MAX_DATA);
+    MultibufferCSPDeferredRequests multiJCSP = new MultibufferCSPDeferredRequests(MAX_DATA);
     ProcessManager pm = new ProcessManager(multiJCSP);
     this.multi = multiJCSP;
     this.trace = "";

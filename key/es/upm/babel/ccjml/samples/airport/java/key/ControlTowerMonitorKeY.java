@@ -26,12 +26,19 @@ public class ControlTowerMonitorKeY {
 
   //@ ensures \result == (\exists int i; i >= 0 && i < runways.length; runways[i]);
   private /*@ pure @*/ boolean cpreBefore(){
-    for (int i = 0; i < runways.length; i++) {
+    boolean found = false;
+    /*@ loop_invariant
+      @   i >= 0 && i<= runways.length &&
+      @     (\forall int j; j >=0 && j< i ; !runways[j]) &&
+      @     found ==> runways[i]
+      @ ;  
+      @*/
+    for (int i = 0; i < runways.length && !found; i++) {
       if (!runways[i]){
-        return true;
+        found = true;
       }
     }
-    return false;
+    return found;
   }
 
   //@ requires r >=0 && r < runways.length;

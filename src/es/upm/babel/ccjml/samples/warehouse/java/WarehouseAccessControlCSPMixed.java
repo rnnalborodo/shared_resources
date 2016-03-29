@@ -15,26 +15,21 @@ import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.One2OneChannel;
 
-public class WarehouseAccessControlCSPDeferredRequest  implements WarehouseAccessControl, CSProcess {
+public class WarehouseAccessControlCSPMixed  
+                        implements WarehouseAccessControl, CSProcess {
 
   public static final int N_ROBOTS = Robots.N_ROBOTS;
   public static final int N_WAREHOUSE = Robots.N_WAREHOUSE;
-  public static final int MAX_WEIGHT_IN_WAREHOUSE = Robots.MAX_WEIGHT_IN_WAREHOUSE;
+  public static final int MAX_WEIGHT = Robots.MAX_WEIGHT_IN_WAREHOUSE;
 
-  // DECLARACION DE CANALES PARA COMUNICAR LAS OPERACIONES DEL
-  // RECURSO COMPARTIDO CON EL SERVIDOR
-  // Solución mixta: uno para solicitarEntrar
-  private Any2OneChannel cPetEntrar; 
-  // por el que se envian objetos PetEntrar (ver mas abajo),
-  // ...y tantos como naves para solicitarSalir:
-  private Any2OneChannel[] cPetSalir;
+  private Any2OneChannel chEnterWarehouse; 
+  private Any2OneChannel[] chExitWarehouse;
 
-  public WarehouseAccessControlCSPDeferredRequest() {
-    // construimos los canales
-    cPetEntrar = Channel.any2one();
-    cPetSalir = new Any2OneChannel[N_WAREHOUSE];
+  public WarehouseAccessControlCSPMixed() {
+    chEnterWarehouse = Channel.any2one();
+    chExitWarehouse = new Any2OneChannel[N_WAREHOUSE];
     for (int n = 0; n < N_WAREHOUSE; n++) {
-      cPetSalir[n] = Channel.any2one();
+      chExitWarehouse[n] = Channel.any2one();
     }
   }
 
@@ -62,14 +57,14 @@ public class WarehouseAccessControlCSPDeferredRequest  implements WarehouseAcces
     // creamos una peticion de entrar:
     PetEntrar pet = new PetEntrar(n,p);
     // la enviamos al servidor
-    cPetEntrar.out().write(pet);
+    chEnterWarehouse.out().write(pet);
     // y esperamos una confirmación
     pet.cresp.in().read();
   }
   
   public void exitWarehouse(int n, int p) {
     // enviamos el peso por cPetSalir[n]
-    cPetSalir[n].out().write(p);
+    chExitWarehouse[n].out().write(p);
     // esto bloquea hasta que el pasillo n+1 (si existe) está libre
   }
 
@@ -91,10 +86,10 @@ public class WarehouseAccessControlCSPDeferredRequest  implements WarehouseAcces
     // las N_WAREHOUSE primeras entradas en alternativa serán las
     // peticiones de salir:
     for (int n = 0; n < N_WAREHOUSE; n++) {
-      inputs[n] = cPetSalir[n].in();
+      inputs[n] = chExitWarehouse[n].in();
     }
     // la última entrada es para las peticiones de entrar:
-    inputs[N_WAREHOUSE] = cPetEntrar.in();
+    inputs[N_WAREHOUSE] = chEnterWarehouse.in();
     // creamos la recepción alternativa:
     Alternative servicios = new Alternative(inputs);
     // creamos el vector de booleanos para la recepción
@@ -147,7 +142,7 @@ public class WarehouseAccessControlCSPDeferredRequest  implements WarehouseAcces
       // solo se aplazan las peticiones de entrar
       // nave 0:
       while (entrar0.size() > 0 && 
-          entrar0.peek().peso + peso[0] <= MAX_WEIGHT_IN_WAREHOUSE) {
+          entrar0.peek().peso + peso[0] <= MAX_WEIGHT) {
         // sacamos petición de la cola
         PetEntrar pet = entrar0.poll();
         // incrementamos el peso de la nave
@@ -159,7 +154,7 @@ public class WarehouseAccessControlCSPDeferredRequest  implements WarehouseAcces
       for (int n = 1; n < N_WAREHOUSE; n++) {
         if (ocupado[n] && entrarN[n] != null) { 
           // hay robot en pasillo n y quiere entrar en nave n
-          if (entrarN[n].peso + peso[n] <= MAX_WEIGHT_IN_WAREHOUSE) {
+          if (entrarN[n].peso + peso[n] <= MAX_WEIGHT) {
             // incrementamos el peso de la nave
             peso[n] += entrarN[n].peso;
             // liberamos el pasillo

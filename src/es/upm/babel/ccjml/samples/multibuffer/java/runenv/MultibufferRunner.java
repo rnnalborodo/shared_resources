@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import org.jcsp.lang.ProcessManager;
 
 import es.upm.babel.ccjml.samples.multibuffer.java.Multibuffer;
-import es.upm.babel.ccjml.samples.multibuffer.java.MultibufferCSPDeferredRequest;
+import es.upm.babel.ccjml.samples.multibuffer.java.MultibufferCSPDeferredRequests;
 import es.upm.babel.ccjml.samples.multibuffer.java.MultibufferMonitor;
 import es.upm.babel.ccjml.samples.multibuffer.java.MultibufferSync;
 import es.upm.babel.ccjml.samples.utils.Utils;
@@ -77,7 +77,7 @@ public class MultibufferRunner {
         break;
       case JCSP:
       default:
-        MultibufferCSPDeferredRequest buffer = new MultibufferCSPDeferredRequest(bufferSize);
+        MultibufferCSPDeferredRequests buffer = new MultibufferCSPDeferredRequests(bufferSize);
         sharedResource = buffer;
         ProcessManager pm = new ProcessManager(buffer);
         pm.start();
