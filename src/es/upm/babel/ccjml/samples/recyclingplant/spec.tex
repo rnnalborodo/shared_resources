@@ -1,11 +1,11 @@
 \begin{ctadsol}
   \nombrectad{Recycling\_Plant}
   \operaciones
-    \operacion{Notify\_weight}{$\nat$ [i]}
-    \operacion{Increment\_weight}{$\nat$ [i]}
+    \operacion{Notify\_weight}{\nat [i]}
+    \operacion{Increment\_weight}{\nat [i]}
     \operacion{Notify\_Drop}{\void}
     \operacion{Prepare\_Replacement}{}
-    \operacion{Notify\_Replacement}{$\nat$ [i]}
+    \operacion{Notify\_Replacement}{\nat [i]}
 %
   \protoconc
   {
@@ -28,13 +28,13 @@
 
   \cpre{self.state \neq REPLACING}
   \nomop{Notify\_weight(w)}
-  \post{self\ent.weight + w > MAX\_W\_CONTEINER \rightarrow
+  \post{self\ent.weight + w > MAX\_W\_CONTAINER \rightarrow
            self\sal.state = TO\_REPLACE \land 
-        self\ent.weight + p \leq MAX\_W\_CONTEINER \rightarrow
+        self\ent.weight + w \leq MAX\_W\_CONTAINER \rightarrow
            self\sal.state = READY
         }
 
-  \cpre{self.weight + w \leq MAX\_W\_CONTEINER \land self.state \neq REPLACING}
+  \cpre{self.weight + w \leq MAX\_W\_CONTAINER \land self.state \neq REPLACING}
   \nomop{Increment\_Weight(w)}
   \post{self\sal.accessing = self\ent.accessing + 1 \land 
         self\sal.weight = self\ent.weight + w}
