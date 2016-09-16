@@ -1,0 +1,43 @@
+\begin{ctadsol}
+\label{especificacion-inicial}
+\nombrectad{ControlTower}
+
+\operaciones
+\operacion{BeforeLanding}{\nat[o]}
+\operacion{AfterLanding}{\nat[i]} 
+\operacion{BeforeTakeOff}{\nat[o]}
+\operacion{AfterTakeOff}{\nat[i]}
+
+\protoconc
+{
+  Landing: BeforeLanding; AfterLanding \\
+  TakeOff: BeforeTakeOff; AfterTakeOff
+}
+{(Landing|TakeOff)*}
+
+\semdom
+  \estado{ControlTower =  Sequence(boolean) }
+  \invariante{}
+  \inicial{self}{\lng{ControlTower}= MAX \land \forall i \in 0..MAX \st\ !ControlTower[i]}
+
+  \pre{\true}
+  \cpre{\exists i \in \nat \st\ !self[i]}
+  \nomop{BeforeLanding(ra)}
+  \post{self\sal[ra] \land (\forall i \in 0..MAX \st\ self\sal[i]=self\ent[i] \lor i == ra)}
+
+  \pre{!self[ra]}
+  \cpre{\true}
+  \nomop{AfterLanding(ra)}
+  \post{!self\sal[ra] \land (\forall i \in 0..MAX \st\ self\sal[i]=self\ent[i] \lor i == ra)}
+  
+  \pre{\true}
+  \cpre{\exists i \in \nat \st\ !self[i]}
+  \nomop{BeforeTakeOff(ra)}
+  \post{self\sal[ra] \land (\forall i \in 0..MAX \st\ self\sal[i]=self\ent[i] \lor i == ra)}
+  
+  \pre{!self[ra]}
+  \cpre{\true}
+  \nomop{AfterTakeOff(ra)}
+  \post{!self\sal[ra] \land (\forall i \in 0..MAX \st\ self\sal[i]=self\ent[i] \lor i == ra)}
+
+\end{ctadsol}
