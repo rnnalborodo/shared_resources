@@ -1,43 +1,31 @@
 \begin{ctadsol}
 \label{especificacion-inicial}
-\nombrectad{ControlTower}
+\nombrectad{MergeSortComp}
 
 \operaciones
-\operacion{BeforeLanding}{\nat[o]}
-\operacion{AfterLanding}{\nat[i]} 
-\operacion{BeforeTakeOff}{\nat[o]}
-\operacion{AfterTakeOff}{\nat[i]}
-
-\protoconc
-{
-  Landing: BeforeLanding; AfterLanding \\
-  TakeOff: BeforeTakeOff; AfterTakeOff
-}
-{(Landing|TakeOff)*}
+\operacion{SetLeft}{ANY[i]}
+\operacion{SetRight}{ANY[i]} 
+\operacion{GetResult}{ANY[o]}
 
 \semdom
-  \estado{ControlTower =  Sequence(boolean) }
+  \estado{MergeSortComp =  (right : ANY \por left : ANY) }
   \invariante{}
-  \inicial{self}{\lng{ControlTower}= MAX \land \forall i \in 0..MAX \st\ !ControlTower[i]}
+  \inicial{self}{\true}
+
+  \pre{\not (obj = null)}
+  \cpre{(self.left = null)}
+  \nomop{SetLeft(obj)}
+  \post{self\sal.left = obj \land self\sal.right = self\ent.right}
+
+  \pre{\not (obj = null)}
+  \cpre{(self.right = null)}
+  \nomop{SetRight(obj)}
+  \post{self\sal.right = obj \land self\sal.left = self\ent.left}
 
   \pre{\true}
-  \cpre{\exists i \in \nat \st\ !self[i]}
-  \nomop{BeforeLanding(ra)}
-  \post{self\sal[ra] \land (\forall i \in 0..MAX \st\ self\sal[i]=self\ent[i] \lor i == ra)}
-
-  \pre{!self[ra]}
-  \cpre{\true}
-  \nomop{AfterLanding(ra)}
-  \post{!self\sal[ra] \land (\forall i \in 0..MAX \st\ self\sal[i]=self\ent[i] \lor i == ra)}
-  
-  \pre{\true}
-  \cpre{\exists i \in \nat \st\ !self[i]}
-  \nomop{BeforeTakeOff(ra)}
-  \post{self\sal[ra] \land (\forall i \in 0..MAX \st\ self\sal[i]=self\ent[i] \lor i == ra)}
-  
-  \pre{!self[ra]}
-  \cpre{\true}
-  \nomop{AfterTakeOff(ra)}
-  \post{!self\sal[ra] \land (\forall i \in 0..MAX \st\ self\sal[i]=self\ent[i] \lor i == ra)}
+  \cpre{\not(self.left = null || self.right = null)}
+  \nomop{getResult(res)}
+  \post{(res = self.left \land self.left <= self.right) \lor
+        (res = self.right \land self.right <= self.left) }
 
 \end{ctadsol}
