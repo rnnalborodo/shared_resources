@@ -1,5 +1,7 @@
 package es.upm.babel.ccjml.samples.mergesort.java;
 
+import es.upm.babel.ccjml.samples.utils.PreViolationSharedResourceException;
+
 public interface  MergeSortComp <T extends Comparable>{
 
   //@ public model instance T left;
@@ -13,7 +15,7 @@ public interface  MergeSortComp <T extends Comparable>{
     @   assignable left;
     @   ensures left == obj;
     @*/
-  public void setLeft(T obj);
+  public void setLeft(T obj) throws PreViolationSharedResourceException;
 
   /*@ public normal_behaviour
     @   requires obj !=null;
@@ -21,7 +23,7 @@ public interface  MergeSortComp <T extends Comparable>{
     @   assignable right;
     @   ensures right == obj;
     @*/
-  public void setRight(T obj);
+  public void setRight(T obj) throws PreViolationSharedResourceException;
   
   /*@ public normal_behaviour
     @   requires true;

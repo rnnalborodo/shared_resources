@@ -10,7 +10,7 @@
 \semdom
   \estado{MergeSortComp =  (right : ANY \por left : ANY) }
   \invariante{}
-  \inicial{self}{\true}
+  \inicial{self}{self.left = nil \land self.right = nil}
 
   \pre{\not (obj = null)}
   \cpre{(self.left = null)}
