@@ -2,8 +2,9 @@ package es.upm.babel.ccjml.samples.mergesort.java;
 
 import es.upm.babel.ccjml.samples.utils.PreViolationSharedResourceException;
 
-public interface  MergeSortComp <T extends Comparable>{
+public interface  MergeSortComp <T extends Comparable<Object>>{
 
+  final static MaxComparable<Object> EOD = new MaxComparable<>();
   //@ public model instance T left;
   //@ public model instance T right;
   
@@ -29,7 +30,7 @@ public interface  MergeSortComp <T extends Comparable>{
     @   requires true;
     @   cond_sync right != null && left != null;
     @   assignable right, left;
-    @   ensures (\result == left &&  left.comparteTo(right) < 0 && 
+    @   ensures (\result == left && (left.comparteTo(right) < 0 && 
     @                         left == null && right == \old(right)) ||
     @           (\result == right &&  left.comparteTo(right) >= 0 && 
     @                          right == null && left == \old(left));

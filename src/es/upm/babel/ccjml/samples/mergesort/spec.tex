@@ -9,23 +9,28 @@
 
 \semdom
   \estado{MergeSortComp =  (right : ANY \por left : ANY) }
-  \invariante{}
+  \tipo{EOD $\in$ ANY}
+
+  \invariante{EOD \not= nil \land (\forall o \in ANT \st EOD > o)}
   \inicial{self}{self.left = nil \land self.right = nil}
 
-  \pre{\not (obj = null)}
-  \cpre{(self.left = null)}
+  \pre{(obj \not= nil)}
+  \cpre{(self.left = nil)}
   \nomop{SetLeft(obj)}
   \post{self\sal.left = obj \land self\sal.right = self\ent.right}
 
-  \pre{\not (obj = null)}
-  \cpre{(self.right = null)}
+  \pre{(obj \not= nil)}
+  \cpre{(self.right = nil)}
   \nomop{SetRight(obj)}
   \post{self\sal.right = obj \land self\sal.left = self\ent.left}
 
   \pre{\true}
-  \cpre{\not(self.left = null || self.right = null)}
+  \cpre{self.right \not= nil \land self.left \not= nil}
   \nomop{getResult(res)}
-  \post{(res = self.left \land self.left <= self.right) \lor
-        (res = self.right \land self.right <= self.left) }
+  \post{(res = self.left \land self.left <= self.right) 
+        \lor
+        (res = self.right \land self.right < self.left)
+        \land self\sal.left = self\ent.left
+        \land self\sal.right = self\ent.right}
 
 \end{ctadsol}
