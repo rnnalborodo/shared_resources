@@ -1,7 +1,8 @@
 package es.upm.babel.ccjml.samples.airport.java.key;
 
-import es.upm.babel.ccjml.samples.csp.JCSPKeY;
-import es.upm.babel.ccjml.samples.csp.list.src.List;
+import java.util.List;
+
+import org.jcsp.JCSPKeY;
 
 /** ControlTower implementation using CSP. KeY Instrumentation 
  * 

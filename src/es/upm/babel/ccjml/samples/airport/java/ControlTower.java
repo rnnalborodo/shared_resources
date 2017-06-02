@@ -1,50 +1,53 @@
 package es.upm.babel.ccjml.samples.airport.java;
 
 /** 
- * Airport Traffic Control Tower with several runways.
+ * Airport Traffic Control Tower with several runs.
  * 
- * @author Babel Group 
+ * @author raul.alborodo
  */
 
 public interface /*@ shared_resource @*/ ControlTower { 
   
-  //@ public model instance JMLObjectSequence data;
-  //@ public model instance int MAX;
+  //@ public instance model non_null boolean[] runs;
 
-  //@ public instance invariant MAX > 0;
-  //@ public instance invariant data.length() <= MAX;
-  //@ public invariant (\forall int i : i >=0  && i <MAX : \typeof(data.get(i)) == Boolean);
+  //@ public instance invariant runs.length <= runs.length;
 
-  //@ public initially  (\forall int i : i >=0  && i <MAX : !data.get(i));
-  //@ public initially data.length() == MAX;
-  //@ public initially MAX > 0;
+  //@ public initially (\forall int i ; i >=0 && i<runs.length; !runs[i]);
 
-  //@ public normal_behaviour
-  //@   requires true;
-  //@   cond_sync (\exist int i : i >=0  && i < MAX : !data.get(i));
-  //@   assignable data;
-  //@   ensures \result < MAX && \result >=0 && data.get(\result);
+  /*@ public normal_behaviour
+    @   requires true;
+    @   cond_sync (\exists int i ; i >=0  && i < runs.length ; !runs[i]);
+    @   assignable runs[*];
+    @   ensures \result < runs.length && \result >=0 && runs[\result] &&
+    @           (\forall int i; i>=0 && i< runs.length && i != \result; 
+    @                                           runs[i] == \old(runs[i]));
+    @*/
   public int beforeLanding();
   
-  //@ public normal_behaviour
-  //@   requires data.get(r) && r >= 0 && r < MAX;
-  //@   cond_sync true;
-  //@   assignable data;
-  //@   ensures !data.get(r);
+  /*@ public normal_behaviour
+    @   requires runs[r] && r >= 0 && r < runs.length;
+    @   cond_sync true;
+    @   assignable runs;
+    @   ensures !runs[r];
+    @*/
   public void afterLanding(int r);
   
-  //@ public normal_behaviour
-  //@   requires true;
-  //@   cond_sync (\exist int i : i >=0  && i < MAX : !data.get(i));
-  //@   assignable data;
-  //@   ensures \result < MAX && \result >=0 && data.get(\result);
+  /*@ public normal_behaviour
+    @   requires true;
+    @   cond_sync (\exists int i ; i >=0  && i < runs.length ; !runs[i]);
+    @   assignable runs[*];
+    @   ensures \result < runs.length && \result >=0 && runs[\result] &&
+    @           (\forall int i; i>=0 && i< runs.length && i != \result; 
+    @                                           runs[i] == \old(runs[i]));
+    @*/
   public int beforeTakeOff();
   
-  //@ public normal_behaviour
-  //@   requires data.get(r) && r >= 0 && r < MAX;
-  //@   cond_sync true;
-  //@   assignable data;
-  //@   ensures !data.get(r);
+  /*@ public normal_behaviour
+    @   requires runs[r] && r >= 0 && r < runs.length;
+    @   cond_sync true;
+    @   assignable runs[r];
+    @   ensures !runs[r];
+    @*/
   public void afterTakeOff(int r);
 
 }

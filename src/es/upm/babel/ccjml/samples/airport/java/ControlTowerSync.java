@@ -1,6 +1,5 @@
 package es.upm.babel.ccjml.samples.airport.java;
 
-
 /** Implementation of ControlTower using synchronized methods 
  *
  * @author Babel Group 
