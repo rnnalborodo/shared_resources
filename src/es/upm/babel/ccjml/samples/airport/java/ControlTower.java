@@ -3,7 +3,7 @@ package es.upm.babel.ccjml.samples.airport.java;
 /** 
  * Airport Traffic Control Tower with several runs.
  * 
- * @author raul.alborodo
+ * @author rul0
  */
 
 public interface /*@ shared_resource @*/ ControlTower { 
@@ -30,7 +30,7 @@ public interface /*@ shared_resource @*/ ControlTower {
     @   assignable runs;
     @   ensures !runs[r];
     @*/
-  public void afterLanding(int r);
+   public void afterLanding(int r);
   
   /*@ public normal_behaviour
     @   requires true;

@@ -6,6 +6,7 @@ import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
+//@ model import org.jcsp.lang.AltingChannelInput;
 
 /** ControlTower implementation using CSP. 
  * 
@@ -36,7 +37,7 @@ public class ControlTowerCSP extends AControlTower implements CSProcess {
 
   @Override
   public void afterLanding(int r) {
-    //@assume runways[r] && r >=0 && r < runway.length;
+    //@assume runways[r] && r >=0 && r < runways.length;
     chAfterLanding.out().write(r);
   }
 
@@ -50,7 +51,7 @@ public class ControlTowerCSP extends AControlTower implements CSProcess {
 
   @Override
   public void afterTakeOff(int r) {
-    //@ assume runways[r] && r >=0 && r < runway.length;
+    //@ assume runways[r] && r >=0 && r < runways.length;
     chAfterTakeOff.out().write(r);
   }
 
@@ -85,18 +86,25 @@ public class ControlTowerCSP extends AControlTower implements CSProcess {
 
     int runway;
     One2OneChannel innerCh;
+    syncCond[AFTER_LANDING] = true;
+    syncCond[AFTER_TAKEOFF] = true;
 
     while (true) {
       syncCond[BEFORE_LANDING] = cpreBeforeLanding();
       syncCond[BEFORE_TAKEOFF] = cpreBeforeTakeOff() ;
-      syncCond[AFTER_LANDING] = true;
-      syncCond[AFTER_TAKEOFF] = true;
-      //@ assert syncCond is consistent,i.e, all refreshments are done properly
+      
+      /*@ assert 
+        @   syncCond[BEFORE_LANDING] == cpreBeforeLanding() &&
+        @   syncCond[BEFORE_TAKEOFF] == cpreBeforeTakeOff() &&
+        @   syncCond[AFTER_LANDING] &&
+        @   syncCond[AFTER_TAKEOFF] ;
+        @*/
 
       chosenService = services.fairSelect(syncCond);
-      //@ assume chosenService < guards.length && chosenService >= 0;
-      //@ assume guards[chosenService].pending() > 0;
-      //@ assume syncCond[chosenService];
+      /*@ assume chosenService < guards.length && chosenService >= 0 && 
+        @        ((AltingChannelInput) guards[chosenService]).pending() &&
+        @        syncCond[chosenService];
+        @*/
       
       switch(chosenService){
         case BEFORE_LANDING:
@@ -126,8 +134,12 @@ public class ControlTowerCSP extends AControlTower implements CSProcess {
     } // end while
   } // end run
 
-  //@ requires cpreBeforeLanding && true && repOk();
-  //@ ensures \result < runways.length && \result >= 0 && runways[\result];
+  /*@ public normal_behaviour
+    @    requires cpreBeforeLanding() && true && repOk();
+    @    assignable runways[*];
+    @    ensures \result < runways.length && \result >= 0 && runways[\result] &&
+    @            (\forall int i; i >= 0 && i < runways.length; runways[i] == \old(runways)[i] || i == \result);
+    @*/
   private int getRunway(){
     int ra = 0;
     for (int i = 0; i < runways.length; i++) {

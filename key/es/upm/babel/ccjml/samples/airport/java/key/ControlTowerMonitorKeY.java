@@ -1,41 +1,42 @@
 package es.upm.babel.ccjml.samples.airport.java.key;
 
+import es.upm.babel.key.cclib.MonitorKey;
+
 /** 
  * ControlTower (instrumented) implementation using Priority Monitors
  * 
- * @author BABEL Group - Technical University of Madrid
+ * @author raul.alborodo
  */ 
 public class ControlTowerMonitorKeY {
 
-  //@ ghost int awakenThread;
+  //@ public ghost int awakenThread;
 
-  //@ public invariant runways.length > 0;
-  private /*@ spec_public @*/boolean runways[];
-  //@ public invariant waitingPlanes > 0;
-  private /*@ spec_public @*/ int waitingPlanes;
+  private /*@ spec_public @*/ boolean runways[];
+
+  private /*@ spec_public @*/ MonitorKey.Cond waitingPlanes;
 
   //@ ensures \result == true  ==> (\exists int i; i >= 0 && i < runways.length; runways[i]);
-  private /*@ pure @*/ boolean cpreBeforeLanding(){
+  protected /*@ pure @*/ boolean cpreBeforeLanding(){
     return cpreBefore();
   }
 
   //@ ensures \result == (\exists int i; i >= 0 && i < runways.length; runways[i]);
-  private /*@ pure @*/ boolean cpreBeforeTakeOff(){
+  protected /*@ pure @*/ boolean cpreBeforeTakeOff(){
     return cpreBefore();
   }
 
   //@ ensures \result == (\exists int i; i >= 0 && i < runways.length; runways[i]);
-  private /*@ pure @*/ boolean cpreBefore(){
+  private /*@ spec_public pure @*/ boolean cpreBefore(){
     boolean found = false;
     /*@ loop_invariant
       @   i >= 0 && i<= runways.length &&
-      @     (\forall int j; j >=0 && j< i ; !runways[j]) &&
-      @     found ==> runways[i]
+      @     (found ==> (\exists int j; j >=0 && j< i ; runways[j]))
       @ ;  
       @*/
-    for (int i = 0; i < runways.length && !found; i++) {
+    for (int i = 0; i < runways.length; i++) {
       if (!runways[i]){
         found = true;
+        break;
       }
     }
     return found;
@@ -43,29 +44,29 @@ public class ControlTowerMonitorKeY {
 
   //@ requires r >=0 && r < runways.length;
   //@ ensures runways[r]; 
-  private /*@ pure @*/ boolean preBeforeLanding(int r){
+  protected /*@ pure @*/ boolean preBeforeLanding(int r){
     return runways[r] && r >=0 && r < runways.length;
   }
 
   //@ requires r >=0 && r < runways.length;
   //@ ensures runways[r]; 
-  private /*@ pure @*/ boolean preBeforeTakeOff(int r){
+  protected /*@ pure @*/ boolean preBeforeTakeOff(int r){
     return runways[r] && r >=0 && r < runways.length;
   }
 
-  private /*@ spec_public @*/ int signaled;
+  protected /*@ spec_public @*/ int signaled;
 
   //@ requires cpreBefore();
   //@ assignable signaled, waitingPlanes;
   //prop_safe_signal
   /*@ ensures 
-    @        (waitingPlanes + 1 == \old(waitingPlanes) ==> cpreBefore())
+    @        (waitingPlanes.waiting() + 1 == \old(waitingPlanes).waiting() ==> cpreBefore())
     @  ;
     @*/
   // prop_signal_0_1
   /*@ ensures 
-    @        waitingPlanes == \old(waitingPlanes) || 
-    @        waitingPlanes +1 == \old(waitingPlanes)
+    @        waitingPlanes.waiting() == \old(waitingPlanes).waiting() || 
+    @        waitingPlanes.waiting() +1 == \old(waitingPlanes).waiting()
     @  ;
     @*/
   // prop_signal_effective
@@ -73,28 +74,28 @@ public class ControlTowerMonitorKeY {
     @  signaled == 1
     @  ==>
     @  (
-    @        waitingPlanes + 1 == \old(waitingPlanes) 
+    @        waitingPlanes.waiting() + 1 == \old(waitingPlanes).waiting() 
     @  );
     @*/
   // prop_liveness
   /*@ ensures
     @  (awakenThread != -1 &&
     @    (
-    @      (waitingPlanes >0 && cpreBefore())
+    @      (waitingPlanes.waiting() >0 && cpreBefore())
     @    )
     @  ) ==>
     @    signaled == 1
     @  ;
     @*/
   // prop_signal_and_return - nothing to do here
-  private void unblobckingCode(){
+  protected void unblobckingCode(){
     // Second step using Model Search as Aritmetic Treatment
     //@ set awakenThread = -1; 
     signaled = 0; 
-    if (waitingPlanes > 0) {
-      waitingPlanes--;
+    if (waitingPlanes.waiting() > 0) {
+      waitingPlanes.signal();
       //@ set awakenThread = 0;
-      //@ assert cprePut(i);
+      //@ assert cpreBefore();
       signaled ++;
     }
   }

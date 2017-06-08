@@ -9,6 +9,7 @@ import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
+//@ model import org.jcsp.lang.AltingChannelInput;
 
 /** 
  * ControlTower implementation using CSP. 
@@ -48,7 +49,7 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
 
   @Override
   public void afterLanding(int r) {
-    //@assume runways[r] && r >=0 && r < runway.length;
+    //@assume runways[r] && r >=0 && r < runways.length;
     One2OneChannel ch = Channel.one2one();
     chAfterLanding.out().write(new CSPRequest(ch, r));
     ch.in().read();
@@ -64,7 +65,7 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
 
   @Override
   public void afterTakeOff(int r) {
-    //@ assume runways[r] && r >=0 && r < runway.length;
+    //@ assume runways[r] && r >=0 && r < runways.length;
     One2OneChannel ch = Channel.one2one();
     chAfterTakeOff.out().write(new CSPRequest(ch, r));
     ch.in().read();
@@ -93,34 +94,31 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
     Alternative services = new Alternative(guards);
     int chosenService = 0;
 
-    int runway;
-    One2OneChannel innerCh;
-
     while (true) {
       
       chosenService = services.fairSelect();
-      //@ assume chosenService < guards.length && chosenService >= 0;
-      //@ assume guards[chosenService].pending() > 0;
-      //@ assume syncCond[chosenService];
+      /*@ assume chosenService < guards.length && chosenService >= 0&&
+        @        ((AltingChannelInput) guards[chosenService]).pending();
+        @*/
       
       switch(chosenService){
         case BEFORE_LANDING:
-          //@ assert cpreBeforeLanding();
+          // assert preBeforeLanding();
           beforeLandingRequests.offer((CSPRequest) chBeforeLanding.in().read());
           break;
   
         case BEFORE_TAKEOFF:
-          //@ assert cpreBeforeTakeOff();
+          // assert preBeforeTakeOff();
           beforeTakeOffRequests.offer((CSPRequest) chBeforeTakeOff.in().read());
           break;
   
         case AFTER_LANDING: 
-          //@ assert true;
+          // assert true;
           afterLandingRequests.offer((CSPRequest) chAfterLanding.in().read());
           break;
   
         case AFTER_TAKEOFF:
-          //@ assert true;
+          // assert true;
           afterTakeOffRequests.offer((CSPRequest) chAfterTakeOff.in().read());
           break;
       }
@@ -180,16 +178,19 @@ public class ControlTowerCSPDeferredRequests extends AControlTower implements CS
 //            break;
           }
         }
-        //@ assert (beforeLandingRequests.size() > 0 ==> !cpreBeforeLanding())
-        //@ assert (afterLandingRequests.size() > 0 ==> !true)
-        //@ assert (beforeTakeOffRequests.size() > 0 ==> !cpreBeforeTakeOff())
-        //@ assert (afterLandingRequests.size() > 0 ==> !true)
+        /*@ assert (beforeLandingRequests.size() > 0 ==> !cpreBeforeLanding()) &&
+          @        (afterLandingRequests.size() > 0 ==> !true) &&
+          @        (beforeTakeOffRequests.size() > 0 ==> !cpreBeforeTakeOff()) &&
+          @        (afterLandingRequests.size() > 0 ==> !true);
+          @*/
       }
     } // end while
   } // end run
 
-  //@ requires cpreBeforeLanding && true && repOk();
-  //@ ensure \result < runways.length && \result >= 0 && runways[\result];
+  /*@ private normal_behaviour
+    @   requires cpreBeforeLanding() && true && repOk();
+    @   ensures \result < runways.length && \result >= 0 && runways[\result];
+    @*/
   private int getRunway(){
     int ra = 0;
     for (int i = 0; i < runways.length; i++) {

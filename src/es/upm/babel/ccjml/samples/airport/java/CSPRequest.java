@@ -10,11 +10,16 @@ public class CSPRequest extends Tuple<One2OneChannel,Integer> {
     super(fst, snd);
   }
   
-  public One2OneChannel getChannel(){
-    return fst;
+  /*@ public normal_behaviour
+    @   ensures \result == fst;
+    @*/
+  public /*@ pure @*/ One2OneChannel getChannel(){
+    return this.getFst();
   }
-
-  public int getRunway(){
-    return snd;
+  /*@ public normal_behaviour
+    @   ensures \result == snd;
+    @*/
+  public /*@ pure @*/ int getRunway(){
+    return this.getSnd().intValue();
   }
 }

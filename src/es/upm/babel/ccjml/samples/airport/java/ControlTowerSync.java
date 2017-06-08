@@ -1,6 +1,9 @@
 package es.upm.babel.ccjml.samples.airport.java;
 
-/** Implementation of ControlTower using synchronized methods 
+import es.upm.babel.ccjml.samples.utils.PreViolationSharedResourceException;
+
+/** 
+ * Implementation of ControlTower using synchronized methods 
  *
  * @author Babel Group 
  */
@@ -21,7 +24,7 @@ public class ControlTowerSync extends AControlTower{
         e.printStackTrace();
       }
 
-    //@ assert cpreBeforeLanding && true && repOk();
+    //@ assert cpreBeforeLanding() && true && repOk();
     int ra = 0;
     for (int i = 0; i < runways.length; i++) {
       if (!runways[i]){
@@ -38,7 +41,9 @@ public class ControlTowerSync extends AControlTower{
   }
 
   @Override
-  public synchronized void afterLanding(int r) {
+  public synchronized void afterLanding(int r) throws PreViolationSharedResourceException {
+    if (! preAfterLanding(r))
+      throw new PreViolationSharedResourceException("afterLanding");
     //@ assume preAfterLanding(r);
 //    while (!true)
 //      this.wait();
@@ -75,7 +80,9 @@ public class ControlTowerSync extends AControlTower{
   }
 
   @Override
-  public synchronized void afterTakeOff(int r) {
+  public synchronized void afterTakeOff(int r) throws PreViolationSharedResourceException {
+    if (! preAfterTakeOff(r))
+      throw new PreViolationSharedResourceException("afterTakeOff");
     //@ assume preAfterTakeOff(r);
 //    while (!true)
 //      this.wait();

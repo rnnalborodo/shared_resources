@@ -2,9 +2,14 @@ package es.upm.babel.ccjml.samples.airport.java.test;
 
 import static org.junit.Assert.assertTrue;
 
+import java.sql.Timestamp;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.junit.Test;
 
 import es.upm.babel.ccjml.samples.airport.java.ControlTower;
+import es.upm.babel.ccjml.samples.utils.PreViolationSharedResourceException;
 import es.upm.babel.cclib.Tryer;
 
 public abstract class TestControlTower {
@@ -44,7 +49,12 @@ public abstract class TestControlTower {
     // Call to the method
     public void toTry() {
       trace += call();
-      resource.afterLanding(runway);
+      try {
+        resource.afterLanding(runway);
+      } catch (PreViolationSharedResourceException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 
@@ -78,14 +88,20 @@ public abstract class TestControlTower {
     // Call to the method
     public void toTry() {
       trace += call();
-      resource.afterTakeOff(runway);
+      try {
+        resource.afterTakeOff(runway);
+      } catch (PreViolationSharedResourceException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
   
   // Just a constant for waiting processes to set up
   final protected int DELAY_MIN_MS = 250;
   
-  final protected int MAX_DATA = 2;
+  final protected static int MAX_DATA = 2;
+ 
 
   @Test public void severalLandingAtSameTime() {
     BeforeLanding br[] = new BeforeLanding[MAX_DATA+10];
@@ -313,6 +329,45 @@ public abstract class TestControlTower {
       assertTrue(i + trace + "-> " + br[i].call() + " should have been unblocked",
         !br[i].isBlocked());
     }
+  }  
+  
+  
+  protected static final int MAX_SR = MAX_DATA;
+  static final int POOL_SIZE = MAX_SR * 4 ;
+  private static final int NUMBER_OF_THREADS = POOL_SIZE * 200; //POOL_SIZE * 2;
+  
+  @Test public void aLoLocoWaitForIt() {
+    
+    ExecutorService executor = Executors.newFixedThreadPool(POOL_SIZE);
+    for (int i = 0; i < NUMBER_OF_THREADS ; i++) {
+      Runnable worker = () -> {
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+
+        try {
+          System.out.println(timestamp + " | "+ Thread.currentThread().getName()+"] beforeTakeOff()");
+          int rw = this.resource.beforeTakeOff();
+          
+          try {
+            Thread.sleep(500);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+
+          System.out.println(timestamp + " | "+ Thread.currentThread().getName()+"] afterTakeOff("+ rw +")");
+          this.resource.afterTakeOff(rw);
+          System.out.println(timestamp + " | "+ Thread.currentThread().getName()+"] DONE!");
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      };
+      
+      executor.execute(worker);
+      
+    }
+    executor.shutdown();
+    while (!executor.isTerminated()) {}
+    System.out.println("Finished all threads");
+
   }
   
 }

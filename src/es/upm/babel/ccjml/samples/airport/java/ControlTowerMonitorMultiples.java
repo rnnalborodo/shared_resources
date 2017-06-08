@@ -5,31 +5,40 @@ import es.upm.babel.cclib.Monitor;
 
 
 /** 
-  * ControlTower implementation using monitors. 
+  * ControlTower implementation using several monitors, one per runway. 
   * 
   * @author rul0
   */ 
-public class ControlTowerMonitor extends AControlTower {
+public class ControlTowerMonitorMultiples extends AControlTower {
 
-  private Monitor mutex;
+  private Monitor monitors[];
+
+  private Monitor selectorMonitor;
   private Monitor.Cond waitingPlanes;
 
-  public ControlTowerMonitor(int m) {
+  public ControlTowerMonitorMultiples(int m) {
     runways = new boolean [m];
-    mutex = new Monitor();
-    waitingPlanes = mutex.newCond();
+    monitors = new Monitor[m];
+
+    for (int i = 0; i < monitors.length; i++) {
+      runways[i] = false;
+      monitors[i] = new Monitor();
+    }
+
+    selectorMonitor = new Monitor();
+    waitingPlanes = selectorMonitor.newCond();
   }
 
   @Override
   public int beforeLanding() {
-    mutex.enter();
+    selectorMonitor.enter();
     //@ assume true; 
     if (!cpreBeforeLanding())
       waitingPlanes.await();
 
     //@ assert cpreBeforeLanding() && true && repOk();
     int ra = 0;
-    for (int i = 0; i < runways.length; i++) {
+    for (int i = 0; i < monitors.length; i++) {
       if (!runways[i]){
         ra = i;
         runways[ra] = true;
@@ -39,14 +48,14 @@ public class ControlTowerMonitor extends AControlTower {
 
     // no waken up can be performed
     // due to we are taken runways
-    mutex.leave();
+
+    selectorMonitor.leave();
     return ra;
   }
 
   @Override
   public void afterLanding(int r) throws PreViolationSharedResourceException {
-    mutex.enter();
-    
+    monitors[r].enter();
     if (! preAfterLanding(r))
       throw new PreViolationSharedResourceException("afterLanding");
     //@ assume runways[r] && r >=0 && r < runways.length;
@@ -56,22 +65,25 @@ public class ControlTowerMonitor extends AControlTower {
     //@ assert true;
     runways[r] = false;
 
-    if (waitingPlanes.waiting() > 0)
+    if (waitingPlanes.waiting() > 0) {
+      selectorMonitor.enter();
       waitingPlanes.signal();
-    
-    mutex.leave();
+      selectorMonitor.leave();
+    }
+
+    monitors[r].leave();
   }
 
   @Override
   public int beforeTakeOff() {
-    mutex.enter();
+    selectorMonitor.enter();
     //@ assume true; 
     if (!cpreBeforeTakeOff())
       waitingPlanes.await();
 
     //@ assert cpreBeforeLanding() && true && repOk();
     int ra = 0;
-    for (int i = 0; i < runways.length; i++) {
+    for (int i = 0; i < monitors.length; i++) {
       if (!runways[i]){
         ra = i;
         runways[ra] = true;
@@ -82,13 +94,13 @@ public class ControlTowerMonitor extends AControlTower {
     // no waken up can be performed
     // due to we are taken runways
 
-    mutex.leave();
+    selectorMonitor.leave();
     return ra;
   }
 
   @Override
   public void afterTakeOff(int r) throws PreViolationSharedResourceException {    
-    mutex.enter();
+    monitors[r].enter();
     if (! preAfterLanding(r))
       throw new PreViolationSharedResourceException("afterLanding");
 
@@ -100,11 +112,11 @@ public class ControlTowerMonitor extends AControlTower {
     runways[r] = false;
 
     if (waitingPlanes.waiting() > 0){
-      mutex.enter();
+      selectorMonitor.enter();
       waitingPlanes.signal();
-      mutex.leave();
+      selectorMonitor.leave();
     }
 
-    mutex.leave();
+    monitors[r].leave();
   }
 }
